@@ -10,9 +10,21 @@ export interface Step {
   detail: string
 }
 
+export interface Claim {
+  text: string
+  source_ids: string[]
+}
+
+export interface NotFound {
+  missing: string
+  ask_instead: string[]
+  related: Citation[]
+}
+
 export interface ChatAnswer {
-  answer: string
+  claims: Claim[]
   citations: Citation[]
+  not_found: NotFound | null
   steps: Step[]
   input_tokens: number
   output_tokens: number
