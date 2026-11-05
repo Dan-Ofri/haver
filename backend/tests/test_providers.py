@@ -4,9 +4,10 @@ from pydantic import SecretStr
 
 from haver.config import Settings
 from haver.core.llm import Message, ToolCall
-from haver.providers import build_llm
+from haver.providers import build_embedder, build_llm
 from haver.providers.gemini import _to_contents
 from haver.providers.offline import OfflineLLM
+from haver.providers.offline_embedder import HashingEmbedder
 
 
 def test_defaults_to_the_offline_model() -> None:
@@ -49,3 +50,9 @@ def test_gemini_skips_empty_model_turns() -> None:
         ]
     )
     assert [c.role for c in contents] == ["user", "user"]
+
+
+def test_build_embedder_matches_the_provider(settings: Settings) -> None:
+    assert isinstance(build_embedder(settings), HashingEmbedder)
+    with pytest.raises(ValueError, match="GEMINI_API_KEY"):
+        build_embedder(settings.model_copy(update={"llm_provider": "gemini"}))

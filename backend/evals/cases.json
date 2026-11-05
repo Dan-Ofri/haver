@@ -1,19 +1,34 @@
 [
   {
     "question": "How many minutes of moderate aerobic activity should adults do each week?",
-    "expected_citations": ["who-aerobic-activity"]
+    "expected_citations": [
+      "who-aerobic-activity"
+    ]
   },
   {
     "question": "How often should I do strength training?",
-    "expected_citations": ["who-muscle-strengthening"]
+    "expected_citations": [
+      "who-muscle-strengthening"
+    ]
   },
   {
     "question": "How much protein do I need to build muscle?",
-    "expected_citations": ["protein-for-muscle-gain"]
+    "expected_citations": [
+      "protein-for-muscle-gain"
+    ]
   },
   {
     "question": "How many hours of sleep does an adult need?",
-    "expected_citations": ["sleep-duration-adults"]
+    "expected_citations": [
+      "sleep-duration-adults"
+    ]
+  },
+  {
+    "question": "כמה שעות שינה מבוגר צריך בלילה?",
+    "expected_citations": [
+      "sleep-duration-adults"
+    ],
+    "needs_semantic_search": true
   },
   {
     "question": "What is a good keto recipe for dinner?",

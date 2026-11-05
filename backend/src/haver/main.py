@@ -12,10 +12,11 @@ from haver import db
 from haver.config import Settings, get_settings
 from haver.core import knowledge
 from haver.core.agent import AgentResult, run_agent
+from haver.core.embedding import Embedder
 from haver.core.llm import LLM
 from haver.core.plugin import Plugin, all_tools, knowledge_dirs
 from haver.plugins import PLUGINS
-from haver.providers import build_llm
+from haver.providers import build_embedder, build_llm
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +31,14 @@ class ChatRequest(BaseModel):
 
 
 def create_app(
-    settings: Settings | None = None, llm: LLM | None = None, plugins: list[Plugin] = PLUGINS
+    settings: Settings | None = None,
+    llm: LLM | None = None,
+    plugins: list[Plugin] = PLUGINS,
+    embedder: Embedder | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     model = llm or build_llm(settings)
+    embedding = embedder or build_embedder(settings)
 
     loaded = False
     lock = threading.Lock()
@@ -44,7 +49,7 @@ def create_app(
         nonlocal loaded
         with lock:
             if not loaded:
-                count = knowledge.load(conn, knowledge_dirs(plugins))
+                count = knowledge.load(conn, knowledge_dirs(plugins), embedding)
                 logger.info("Loaded %d knowledge documents", count)
                 loaded = True
 
@@ -59,7 +64,7 @@ def create_app(
     def chat(request: ChatRequest) -> AgentResult:
         with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
             ensure_knowledge(conn)
-            return run_agent(model, all_tools(conn, plugins), request.message)
+            return run_agent(model, all_tools(conn, plugins, embedding), request.message)
 
     return app
 

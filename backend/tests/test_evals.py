@@ -3,11 +3,12 @@ import psycopg
 from haver.core.agent import NOT_FOUND, STEP_LIMIT, AgentResult, NotFound
 from haver.evals import Case, load_cases, passed, run
 from haver.providers.offline import OfflineLLM
+from haver.providers.offline_embedder import HashingEmbedder
 
 
 def test_eval_set_runs_end_to_end_with_the_offline_model(conn: psycopg.Connection) -> None:
-    outcomes = run(OfflineLLM(), conn, load_cases())
-    assert len(outcomes) == 5
+    outcomes = run(OfflineLLM(), conn, load_cases(), HashingEmbedder())
+    assert len(outcomes) == 5  # the semantic-only case is skipped offline
     assert all(ok for _, ok in outcomes)
 
 
