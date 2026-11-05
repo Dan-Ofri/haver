@@ -147,3 +147,17 @@ def test_a_document_with_no_vector_direction_is_not_returned(
     (tmp_path / "empty.md").write_text("# The\nSource: https://x.org\nthe and of")
     knowledge.load(conn, [tmp_path], EMBEDDER)
     assert knowledge.search(conn, "protein muscle", EMBEDDER) == []
+
+
+def test_embeds_in_batches(tmp_path: Path, conn: psycopg.Connection) -> None:
+    for i in range(120):
+        (tmp_path / f"d{i}.md").write_text(f"# T{i}\nSource: https://x.org\nbody {i}")
+    sizes: list[int] = []
+
+    class Sizes(HashingEmbedder):
+        def embed(self, texts: list[str]) -> list[list[float]]:
+            sizes.append(len(texts))
+            return super().embed(texts)
+
+    knowledge.load(conn, [tmp_path], Sizes())
+    assert sizes == [50, 50, 20]
