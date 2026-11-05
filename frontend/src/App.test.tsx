@@ -51,6 +51,7 @@ describe('App', () => {
       not_found: {
         message: "I couldn't find a reliable source on keto recipes.",
         topic: 'keto recipes',
+        out_of_steps: false,
         ask_instead: ['How much protein do I need?'],
         related: [{ id: 'protein', title: 'Protein for muscle', url: 'https://example.org/p' }],
       },

@@ -14,7 +14,7 @@ from pydantic import BaseModel, TypeAdapter
 
 from haver.config import get_settings
 from haver.core import knowledge
-from haver.core.agent import STEP_LIMIT, AgentResult, run_agent
+from haver.core.agent import AgentResult, run_agent
 from haver.core.llm import LLM
 from haver.core.plugin import Plugin, all_tools, knowledge_dirs
 from haver.plugins import PLUGINS
@@ -37,7 +37,7 @@ def passed(case: Case, result: AgentResult) -> bool:
     if not case.expected_citations:
         # Running out of steps is a failure, not a correct "not found".
         nf = result.not_found
-        return not cited and nf is not None and nf.message != STEP_LIMIT
+        return not cited and nf is not None and not nf.out_of_steps
     return set(case.expected_citations) <= cited
 
 

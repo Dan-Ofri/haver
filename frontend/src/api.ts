@@ -18,6 +18,7 @@ export interface Claim {
 export interface NotFound {
   message: string
   topic: string | null
+  out_of_steps: boolean
   ask_instead: string[]
   related: Citation[]
 }

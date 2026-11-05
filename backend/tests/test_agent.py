@@ -165,6 +165,7 @@ def test_stops_at_the_step_limit() -> None:
     result = run_agent(llm, [lookup_tool()], "q", max_steps=3)
     assert result.claims == []
     assert result.not_found is not None and result.not_found.message == STEP_LIMIT
+    assert result.not_found.out_of_steps
     assert len(result.steps) == 3
 
 

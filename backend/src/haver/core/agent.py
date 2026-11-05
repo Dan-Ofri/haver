@@ -77,6 +77,7 @@ class Claim(BaseModel):
 class NotFound(BaseModel):
     message: str
     topic: str | None = None
+    out_of_steps: bool = False
     ask_instead: list[str] = Field(default_factory=list)
     related: list[Source] = Field(default_factory=list)
 
@@ -221,6 +222,7 @@ def _finish(
             message = STEP_LIMIT
         not_found = NotFound(
             message=message,
+            out_of_steps=out_of_steps,
             topic=topic,
             ask_instead=args.ask_instead if args else [],
             related=list(retrieved.values())[:3],

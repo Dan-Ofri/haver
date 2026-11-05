@@ -76,7 +76,13 @@ export default function App() {
                     {turn.reply.not_found.ask_instead.length > 0 && (
                       <div className="suggestions">
                         {turn.reply.not_found.ask_instead.map((q, k) => (
-                          <button key={k} type="button" dir="auto" onClick={() => void send(q)}>
+                          <button
+                            key={k}
+                            type="button"
+                            dir="auto"
+                            disabled={busy}
+                            onClick={() => void send(q)}
+                          >
                             {q}
                           </button>
                         ))}
