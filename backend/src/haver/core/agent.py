@@ -1,6 +1,7 @@
 """The agent loop: ask the model, run the tools it asks for, repeat, then check citations."""
 
 import re
+import time
 from typing import Any
 
 from pydantic import BaseModel, Field, ValidationError
@@ -16,6 +17,11 @@ with "I don't know" and do not cite anything. Answer in the language of the ques
 You are a coach, not a doctor: never diagnose."""
 
 CITATION = re.compile(r"\[doc:([A-Za-z0-9_\-]+)\]")
+DONT_KNOW = "I don't know. I couldn't find a reliable source for that in my knowledge base."
+
+
+def says_dont_know(text: str) -> bool:
+    return text.replace("\u2019", "'").lower().startswith("i don't know")
 
 
 class Step(BaseModel):
@@ -32,9 +38,17 @@ class AgentResult(BaseModel):
     steps: list[Step] = Field(default_factory=list)
     input_tokens: int = 0
     output_tokens: int = 0
+    duration_ms: int = 0
 
 
 def run_agent(llm: LLM, tools: list[Tool], question: str, max_steps: int = 5) -> AgentResult:
+    start = time.perf_counter()
+    result = _loop(llm, tools, question, max_steps)
+    result.duration_ms = round((time.perf_counter() - start) * 1000)
+    return result
+
+
+def _loop(llm: LLM, tools: list[Tool], question: str, max_steps: int) -> AgentResult:
     by_name = {tool.name: tool for tool in tools}
     specs = [tool.spec() for tool in tools]
     messages = [Message(role="user", content=question)]
@@ -97,7 +111,11 @@ def _finish(
     input_tokens: int,
     output_tokens: int,
 ) -> AgentResult:
-    """Keep only citations of documents the tools actually returned."""
+    """Enforce grounding: an answer must cite only documents the tools actually returned.
+
+    If the model cites something it never retrieved, or makes claims without any citation,
+    the user gets a fixed "I don't know" instead of an unsourced claim.
+    """
     citations: list[Source] = []
     dropped: list[str] = []
     for doc_id in CITATION.findall(text):
@@ -107,10 +125,9 @@ def _finish(
         elif doc_id not in dropped:
             dropped.append(doc_id)
 
-    def keep_valid(match: re.Match[str]) -> str:
-        return match.group(0) if match.group(1) in retrieved else ""
-
-    answer = CITATION.sub(keep_valid, text).strip()
+    answer = text.strip()
+    if dropped or (not citations and not says_dont_know(answer)):
+        answer, citations = DONT_KNOW, []
     return AgentResult(
         answer=answer,
         citations=citations,

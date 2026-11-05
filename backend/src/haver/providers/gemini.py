@@ -32,8 +32,8 @@ class GeminiLLM:
             model=self._model, contents=_to_contents(messages), config=config
         )
         calls = [
-            ToolCall(id=call.id or f"call-{i}", name=call.name or "", arguments=call.args or {})
-            for i, call in enumerate(response.function_calls or [])
+            ToolCall(id=call.id or "", name=call.name or "", arguments=call.args or {})
+            for call in response.function_calls or []
         ]
         usage = response.usage_metadata
         content = response.candidates[0].content if response.candidates else None
@@ -41,7 +41,12 @@ class GeminiLLM:
             text="" if calls else (response.text or ""),
             tool_calls=calls,
             input_tokens=(usage.prompt_token_count or 0) if usage else 0,
-            output_tokens=(usage.candidates_token_count or 0) if usage else 0,
+            # Thinking tokens are billed as output, so they count.
+            output_tokens=(
+                (usage.candidates_token_count or 0) + (usage.thoughts_token_count or 0)
+                if usage
+                else 0
+            ),
             provider_data=content,
         )
 
@@ -63,8 +68,12 @@ def _to_contents(messages: list[Message]) -> list[types.Content]:
                 ]
                 contents.append(types.Content(role="model", parts=parts))
         else:
-            part = types.Part.from_function_response(
-                name=message.tool_name or "", response={"result": message.content}
+            part = types.Part(
+                function_response=types.FunctionResponse(
+                    id=message.tool_call_id or None,
+                    name=message.tool_name or "",
+                    response={"result": message.content},
+                )
             )
             previous = contents[-1] if contents else None
             if previous and previous.parts and previous.parts[0].function_response:

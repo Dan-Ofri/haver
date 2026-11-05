@@ -6,9 +6,27 @@ import pytest
 
 from haver.config import Settings
 
-TEST_DATABASE_URL = os.environ.get(
-    "TEST_DATABASE_URL", "postgresql://haver:haver@localhost:5432/haver"
+# Tests use their own database, so they never wipe the one the running app uses.
+ADMIN_DATABASE_URL = os.environ.get(
+    "TEST_ADMIN_DATABASE_URL", "postgresql://haver:haver@localhost:5432/haver"
 )
+TEST_DATABASE_URL = ADMIN_DATABASE_URL.rsplit("/", 1)[0] + "/haver_test"
+
+
+@pytest.fixture(scope="session")
+def test_database() -> str:
+    """Create the test database once. Required in CI, skipped locally when Postgres is down."""
+    try:
+        admin = psycopg.connect(ADMIN_DATABASE_URL, connect_timeout=2, autocommit=True)
+    except psycopg.OperationalError:
+        if os.environ.get("CI"):
+            raise
+        pytest.skip("no database: run `docker compose up -d db`")
+    with admin:
+        exists = admin.execute("SELECT 1 FROM pg_database WHERE datname = 'haver_test'").fetchone()
+        if not exists:
+            admin.execute("CREATE DATABASE haver_test")
+    return TEST_DATABASE_URL
 
 
 @pytest.fixture
@@ -18,16 +36,10 @@ def settings() -> Settings:
 
 
 @pytest.fixture
-def conn() -> Iterator[psycopg.Connection]:
-    """A real database, rolled back to empty after each test. Required in CI."""
-    try:
-        # Autocommit, so this connection never holds locks that the app's own connections wait on.
-        connection = psycopg.connect(TEST_DATABASE_URL, connect_timeout=2, autocommit=True)
-    except psycopg.OperationalError:
-        if os.environ.get("CI"):
-            raise
-        pytest.skip("no test database: run `docker compose up -d db`")
-    with connection:
+def conn(test_database: str) -> Iterator[psycopg.Connection]:
+    """A real database, emptied before and after each test."""
+    # Autocommit, so this connection never holds locks that the app's own connections wait on.
+    with psycopg.connect(test_database, autocommit=True) as connection:
         connection.execute("DROP TABLE IF EXISTS documents")
         yield connection
         connection.execute("DROP TABLE IF EXISTS documents")

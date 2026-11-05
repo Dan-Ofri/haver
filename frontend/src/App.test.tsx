@@ -10,6 +10,9 @@ const answer = {
   answer: 'About 1.6 g per kg a day. [doc:protein] [doc:missing]',
   citations: [{ id: 'protein', title: 'Protein for muscle', url: 'https://example.org/p' }],
   steps: [{ tool: 'search_knowledge', ok: true, detail: '1 result(s)' }],
+  input_tokens: 300,
+  output_tokens: 45,
+  duration_ms: 1234,
 }
 
 async function askQuestion(text: string) {
@@ -31,7 +34,9 @@ describe('App', () => {
       'href',
       'https://example.org/p',
     )
-    expect(screen.getByText('search_knowledge: 1 result(s)')).toBeInTheDocument()
+    expect(
+      screen.getByText('search_knowledge: 1 result(s) · 1.2 s · 345 tokens'),
+    ).toBeInTheDocument()
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(url).toBe('/api/chat')
     expect(JSON.parse(init.body as string)).toEqual({ message: 'How much protein?' })

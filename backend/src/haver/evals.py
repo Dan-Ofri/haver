@@ -13,7 +13,7 @@ from pydantic import BaseModel, TypeAdapter
 
 from haver.config import get_settings
 from haver.core import knowledge
-from haver.core.agent import AgentResult, run_agent
+from haver.core.agent import AgentResult, run_agent, says_dont_know
 from haver.core.llm import LLM
 from haver.main import KNOWLEDGE_DIR
 from haver.providers import build_llm
@@ -33,7 +33,7 @@ def load_cases(path: Path = CASES_FILE) -> list[Case]:
 def passed(case: Case, result: AgentResult) -> bool:
     cited = {source.id for source in result.citations}
     if not case.expected_citations:
-        return not cited and result.answer.lower().startswith("i don't know")
+        return not cited and says_dont_know(result.answer)
     return set(case.expected_citations) <= cited
 
 

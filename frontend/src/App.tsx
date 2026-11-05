@@ -17,6 +17,14 @@ function withNumbers(text: string, citations: Citation[]): string {
   })
 }
 
+/** One quiet line: which tools ran, how long it took, how many tokens it used. */
+function trace(reply: ChatAnswer): string {
+  const steps = reply.steps.map((s) => `${s.tool}: ${s.detail}`)
+  const seconds = (reply.duration_ms / 1000).toFixed(1)
+  const tokens = reply.input_tokens + reply.output_tokens
+  return [...steps, `${seconds} s`, `${tokens} tokens`].join(' · ')
+}
+
 export default function App() {
   const [turns, setTurns] = useState<Turn[]>([])
   const [draft, setDraft] = useState('')
@@ -62,9 +70,7 @@ export default function App() {
                     ))}
                   </ol>
                 )}
-                <p className="status">
-                  {turn.reply.steps.map((s) => `${s.tool}: ${s.detail}`).join(' · ')}
-                </p>
+                <p className="status">{trace(turn.reply)}</p>
               </div>
             )}
           </li>

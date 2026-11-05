@@ -1,8 +1,6 @@
 """HTTP entry point."""
 
 import logging
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
@@ -34,17 +32,16 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
     settings = settings or get_settings()
     model = llm or build_llm(settings)
 
-    @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        try:
-            with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
-                count = knowledge.load(conn, KNOWLEDGE_DIR)
-            logger.info("Loaded %d knowledge documents", count)
-        except psycopg.Error:
-            logger.warning("Database unavailable at startup: knowledge not loaded")
-        yield
+    loaded = False
 
-    app = FastAPI(title="Haver API", version="0.1.0", lifespan=lifespan)
+    def ensure_knowledge(conn: psycopg.Connection) -> None:
+        # Loaded on first use rather than at startup, so a database that starts late still works.
+        nonlocal loaded
+        if not loaded:
+            logger.info("Loaded %d knowledge documents", knowledge.load(conn, KNOWLEDGE_DIR))
+            loaded = True
+
+    app = FastAPI(title="Haver API", version="0.1.0")
 
     @app.get("/api/health")
     def health() -> HealthResponse:
@@ -54,6 +51,7 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
     @app.post("/api/chat")
     def chat(request: ChatRequest) -> AgentResult:
         with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
+            ensure_knowledge(conn)
             return run_agent(model, [knowledge.search_tool(conn)], request.message)
 
     return app
