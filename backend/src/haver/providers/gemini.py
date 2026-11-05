@@ -60,13 +60,15 @@ def _to_contents(messages: list[Message]) -> list[types.Content]:
         elif message.role == "assistant":
             # Send the model's own turn back unchanged: it carries thought signatures.
             if isinstance(message.provider_data, types.Content):
-                contents.append(message.provider_data)
+                if message.provider_data.parts:  # an empty turn (blocked, malformed) is skipped
+                    contents.append(message.provider_data)
             else:
                 parts = [
                     types.Part.from_function_call(name=c.name, args=c.arguments)
                     for c in message.tool_calls
                 ]
-                contents.append(types.Content(role="model", parts=parts))
+                if parts:
+                    contents.append(types.Content(role="model", parts=parts))
         else:
             part = types.Part(
                 function_response=types.FunctionResponse(

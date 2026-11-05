@@ -14,3 +14,4 @@
 form { display: flex; gap: 0.5rem; }
 input { flex: 1; padding: 0.5rem; font: inherit; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.suggestions { display: flex; flex-wrap: wrap; gap: 0.5rem; }

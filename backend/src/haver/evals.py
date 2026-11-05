@@ -1,7 +1,7 @@
 """Run the eval set against the configured model and database: uv run python -m haver.evals
 
 A case passes when the answer cites every expected document, or, when none is expected,
-says it doesn't know and cites nothing. Runs against the configured model: with Gemini it
+answers "not found" and cites nothing. Runs against the configured model: with Gemini it
 uses your quota.
 """
 
@@ -14,8 +14,10 @@ from pydantic import BaseModel, TypeAdapter
 
 from haver.config import get_settings
 from haver.core import knowledge
-from haver.core.agent import AgentResult, run_agent, says_dont_know
+from haver.core.agent import AgentResult, run_agent
 from haver.core.llm import LLM
+from haver.core.plugin import Plugin, all_tools, knowledge_dirs
+from haver.plugins import PLUGINS
 from haver.providers import build_llm
 
 CASES_FILE = Path(__file__).parents[2] / "evals" / "cases.json"
@@ -33,17 +35,21 @@ def load_cases(path: Path = CASES_FILE) -> list[Case]:
 def passed(case: Case, result: AgentResult) -> bool:
     cited = {source.id for source in result.citations}
     if not case.expected_citations:
-        return not cited and says_dont_know(result.answer)
+        # Running out of steps is a failure, not a correct "not found".
+        nf = result.not_found
+        return not cited and nf is not None and not nf.out_of_steps
     return set(case.expected_citations) <= cited
 
 
-def run(llm: LLM, conn: psycopg.Connection, cases: list[Case]) -> list[tuple[Case, bool]]:
-    knowledge.load(conn, knowledge.KNOWLEDGE_DIR)
-    tool = knowledge.search_tool(conn)
+def run(
+    llm: LLM, conn: psycopg.Connection, cases: list[Case], plugins: list[Plugin] = PLUGINS
+) -> list[tuple[Case, bool]]:
+    knowledge.load(conn, knowledge_dirs(plugins))
+    tools = all_tools(conn, plugins)
     outcomes = []
     for case in cases:
         start = time.perf_counter()
-        result = run_agent(llm, [tool], case.question)
+        result = run_agent(llm, tools, case.question)
         ok = passed(case, result)
         outcomes.append((case, ok))
         seconds = time.perf_counter() - start

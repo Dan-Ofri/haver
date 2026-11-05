@@ -11,8 +11,6 @@ from pydantic import BaseModel, Field
 
 from haver.core.tools import Source, Tool, ToolOutput
 
-KNOWLEDGE_DIR = Path(__file__).parents[1] / "knowledge"
-
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS documents (
     id text PRIMARY KEY,
@@ -48,9 +46,13 @@ def parse_document(path: Path) -> Document:
     )
 
 
-def load(conn: psycopg.Connection, folder: Path) -> int:
-    """Create the schema and upsert every document in the folder. Returns the count."""
-    documents = [parse_document(path) for path in sorted(folder.glob("*.md"))]
+def load(conn: psycopg.Connection, folders: list[Path]) -> int:
+    """Create the schema and upsert every document in the folders. Returns the count."""
+    documents = [parse_document(p) for folder in folders for p in sorted(folder.glob("*.md"))]
+    ids = [doc.id for doc in documents]
+    duplicates = sorted({i for i in ids if ids.count(i) > 1})
+    if duplicates:
+        raise ValueError(f"duplicate document IDs across plugins: {duplicates}")
     with conn.transaction():
         conn.execute(SCHEMA)
         for doc in documents:

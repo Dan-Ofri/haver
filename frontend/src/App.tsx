@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react'
-import { type ChatAnswer, type Citation, ask } from './api'
+import { type ChatAnswer, type Citation, type Claim, ask } from './api'
 
 interface Turn {
   question: string
@@ -7,14 +7,11 @@ interface Turn {
   error?: boolean
 }
 
-const CITATION = /\s*\[doc:([\w-]+)\]/g
-
-/** Replace [doc:id] markers with the citation's number in the sources list. */
-function withNumbers(text: string, citations: Citation[]): string {
-  return text.replace(CITATION, (_, id: string) => {
-    const index = citations.findIndex((c) => c.id === id)
-    return index === -1 ? '' : ` [${index + 1}]`
-  })
+/** A claim followed by the numbers of its sources in the list below the answer. */
+function withNumbers(claim: Claim, citations: Citation[]): string {
+  const numbers = new Set(claim.source_ids.map((id) => citations.findIndex((c) => c.id === id) + 1))
+  numbers.delete(0)
+  return `${claim.text} ${[...numbers].map((n) => `[${n}]`).join('')}`.trim()
 }
 
 /** One quiet line: which tools ran, how long it took, how many tokens it used. */
@@ -30,11 +27,15 @@ export default function App() {
   const [draft, setDraft] = useState('')
   const busy = turns.length > 0 && !turns.at(-1)?.reply && !turns.at(-1)?.error
 
-  async function submit(event: FormEvent) {
+  function submit(event: FormEvent) {
     event.preventDefault()
-    const question = draft.trim()
+    void send(draft)
+  }
+
+  async function send(text: string) {
+    const question = text.trim()
     if (!question || busy) return
-    setDraft('')
+    if (text === draft) setDraft('')
     setTurns((prev) => [...prev, { question }])
     const update = (patch: Partial<Turn>) =>
       setTurns((prev) => prev.map((t, i) => (i === prev.length - 1 ? { ...t, ...patch } : t)))
@@ -58,7 +59,37 @@ export default function App() {
             {!turn.reply && !turn.error && <p className="status">Thinking…</p>}
             {turn.reply && (
               <div className="reply">
-                <p dir="auto">{withNumbers(turn.reply.answer, turn.reply.citations)}</p>
+                {turn.reply.claims.map((claim, j) => (
+                  <p key={j} dir="auto">
+                    {withNumbers(claim, turn.reply!.citations)}
+                  </p>
+                ))}
+                {turn.reply.not_found && (
+                  <div className="not-found">
+                    <p dir="auto">{turn.reply.not_found.message}</p>
+                    {turn.reply.not_found.related.length > 0 && (
+                      <p dir="auto">
+                        Closest topics I have:{' '}
+                        {turn.reply.not_found.related.map((r) => r.title).join(', ')}
+                      </p>
+                    )}
+                    {turn.reply.not_found.ask_instead.length > 0 && (
+                      <div className="suggestions">
+                        {turn.reply.not_found.ask_instead.map((q, k) => (
+                          <button
+                            key={k}
+                            type="button"
+                            dir="auto"
+                            disabled={busy}
+                            onClick={() => void send(q)}
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {turn.reply.citations.length > 0 && (
                   <ol className="sources" aria-label="Sources">
                     {turn.reply.citations.map((c) => (

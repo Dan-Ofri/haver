@@ -26,7 +26,7 @@ data are out of scope.
 
 | # | Scenario | Example | Acceptance criterion | Version |
 |---|---|---|---|---|
-| 1 | Knowledge question | How much protein do I need to build muscle? | Every claim cites a source the agent actually retrieved. No source, no claim: it says it does not know. | v1 |
+| 1 | Knowledge question | How much protein do I need to build muscle? | Every claim cites a source the agent actually retrieved; a claim without one is dropped. Before giving up it searches again with other phrasings. With no source left, it says what it could not find, the closest topics it has, and questions it can answer instead. | v1 |
 | 2 | Question about my data | How many strength sessions did I do in the last two weeks? | Numbers match the database exactly. Arithmetic happens in code, not in the model. | v1 |
 | 3 | Cross-domain link | Does my sleep affect my training? | Numbers come from a tool. The answer states how many weeks were measured and does not claim causation. | v1 |
 | 4 | Personal memory | I have a knee issue, remember that. | The fact appears on the memory screen, can be edited and deleted, and shapes later exercise suggestions. | v1 |
