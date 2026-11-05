@@ -1,7 +1,7 @@
 """HTTP entry point."""
 
 import logging
-from pathlib import Path
+import threading
 from typing import Literal
 
 import psycopg
@@ -15,7 +15,6 @@ from haver.core.agent import AgentResult, run_agent
 from haver.core.llm import LLM
 from haver.providers import build_llm
 
-KNOWLEDGE_DIR = Path(__file__).parent / "knowledge"
 logger = logging.getLogger(__name__)
 
 
@@ -33,13 +32,17 @@ def create_app(settings: Settings | None = None, llm: LLM | None = None) -> Fast
     model = llm or build_llm(settings)
 
     loaded = False
+    lock = threading.Lock()
 
     def ensure_knowledge(conn: psycopg.Connection) -> None:
         # Loaded on first use rather than at startup, so a database that starts late still works.
+        # The lock keeps concurrent first requests from creating the schema twice.
         nonlocal loaded
-        if not loaded:
-            logger.info("Loaded %d knowledge documents", knowledge.load(conn, KNOWLEDGE_DIR))
-            loaded = True
+        with lock:
+            if not loaded:
+                count = knowledge.load(conn, knowledge.KNOWLEDGE_DIR)
+                logger.info("Loaded %d knowledge documents", count)
+                loaded = True
 
     app = FastAPI(title="Haver API", version="0.1.0")
 

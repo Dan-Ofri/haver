@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 
 from haver.core.tools import Source, Tool, ToolOutput
 
+KNOWLEDGE_DIR = Path(__file__).parents[1] / "knowledge"
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS documents (
     id text PRIMARY KEY,

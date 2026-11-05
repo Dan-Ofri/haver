@@ -15,7 +15,6 @@ from haver.config import get_settings
 from haver.core import knowledge
 from haver.core.agent import AgentResult, run_agent, says_dont_know
 from haver.core.llm import LLM
-from haver.main import KNOWLEDGE_DIR
 from haver.providers import build_llm
 
 CASES_FILE = Path(__file__).parents[2] / "evals" / "cases.json"
@@ -38,7 +37,7 @@ def passed(case: Case, result: AgentResult) -> bool:
 
 
 def run(llm: LLM, conn: psycopg.Connection, cases: list[Case]) -> list[tuple[Case, bool]]:
-    knowledge.load(conn, KNOWLEDGE_DIR)
+    knowledge.load(conn, knowledge.KNOWLEDGE_DIR)
     tool = knowledge.search_tool(conn)
     outcomes = []
     for case in cases:

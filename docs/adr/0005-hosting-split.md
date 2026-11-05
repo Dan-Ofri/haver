@@ -10,12 +10,12 @@ documentation, not yet deployed:
 - The free plan allows 10 ms of CPU time per request. Waiting on the network does not count, but
   the Python runtime, FastAPI routing and Pydantic validation all run on CPU, and the agent loop
   parses several model responses per question.
-- Only pure-Python packages and packages built for WebAssembly load. The google-genai SDK is not
-  on the list of packages reported to work.
+- Only pure-Python packages, packages built for WebAssembly and packages bundled with Pyodide
+  load. Our dependencies probably fit, but that is untested.
 - The free plan allows 50 subrequests per request. Each agent step is at least one.
 
 Sources: [Workers limits](https://developers.cloudflare.com/workers/platform/limits/),
-[Python Workers package constraints](https://www.issoh.co.jp/tech/details/18259/).
+[Python Workers packages](https://developers.cloudflare.com/workers/languages/python/packages/).
 
 ## Decision
 The frontend is a static build and goes on Cloudflare. The backend stays a standard container, so

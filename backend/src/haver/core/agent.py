@@ -113,8 +113,10 @@ def _finish(
 ) -> AgentResult:
     """Enforce grounding: an answer must cite only documents the tools actually returned.
 
-    If the model cites something it never retrieved, or makes claims without any citation,
-    the user gets a fixed "I don't know" instead of an unsourced claim.
+    If the model cites something it never retrieved, or cites nothing at all, the user gets a
+    fixed "I don't know" instead, even when the model hedged in its own words.
+    Known limit: one valid citation lets the whole answer through. Checking each sentence
+    against its source comes with the response schema in phase 3.
     """
     citations: list[Source] = []
     dropped: list[str] = []
@@ -126,7 +128,7 @@ def _finish(
             dropped.append(doc_id)
 
     answer = text.strip()
-    if dropped or (not citations and not says_dont_know(answer)):
+    if dropped or not citations:
         answer, citations = DONT_KNOW, []
     return AgentResult(
         answer=answer,

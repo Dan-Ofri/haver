@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from haver.core.agent import DONT_KNOW, run_agent
+from haver.core.agent import DONT_KNOW, run_agent, says_dont_know
 from haver.core.llm import LLMResponse, ToolCall
 from haver.core.tools import Source, Tool, ToolOutput
 from tests.fakes import ScriptedLLM
@@ -80,7 +80,12 @@ def test_an_answer_without_any_citation_turns_into_i_dont_know() -> None:
     assert result.answer == DONT_KNOW
 
 
-def test_keeps_the_models_own_i_dont_know_with_any_apostrophe() -> None:
-    llm = ScriptedLLM(LLMResponse(text="I don\u2019t know that one."))
+def test_a_hedged_unsourced_claim_turns_into_i_dont_know() -> None:
+    llm = ScriptedLLM(LLMResponse(text="I don't know for sure, but eat 5 g/kg of protein daily."))
     result = run_agent(llm, [lookup_tool()], "q")
-    assert result.answer == "I don\u2019t know that one."
+    assert result.answer == DONT_KNOW
+
+
+def test_recognizes_i_dont_know_with_any_apostrophe() -> None:
+    assert says_dont_know("I don\u2019t know that one.")
+    assert not says_dont_know("Sleep 7 hours.")
