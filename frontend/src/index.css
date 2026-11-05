@@ -4,6 +4,13 @@
   color: #1f1d1a;
   background: #faf8f5;
 }
-.shell { max-width: 40rem; margin: 20vh auto; padding: 0 1rem; }
-.tagline { color: #6b655d; }
-.status { font-size: 0.875rem; color: #6b655d; }
+.shell { max-width: 40rem; margin: 10vh auto; padding: 0 1rem; }
+.tagline, .status { color: #6b655d; }
+.status { font-size: 0.875rem; }
+.turns { list-style: none; padding: 0; }
+.question { font-weight: 600; }
+.error { color: #a33; }
+.sources { font-size: 0.875rem; }
+form { display: flex; gap: 0.5rem; }
+input { flex: 1; padding: 0.5rem; font: inherit; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

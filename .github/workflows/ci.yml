@@ -17,6 +17,18 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: haver
+          POSTGRES_PASSWORD: haver
+          POSTGRES_DB: haver
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U haver" --health-interval 2s --health-timeout 5s
+          --health-retries 15
     defaults:
       run:
         working-directory: backend
@@ -67,6 +79,11 @@ jobs:
         run: docker compose up -d --wait
       - name: Health check through the web proxy
         run: curl -fsS localhost:8080/api/health | grep -q '"database":"ok"'
+      - name: A question through every layer, with the offline model
+        run: >-
+          curl -fsS localhost:8080/api/chat -H 'Content-Type: application/json'
+          -d '{"message":"How much protein do I need to build muscle?"}'
+          | grep -q '"id":"protein-for-muscle-gain"'
       - name: Logs on failure
         if: failure()
         run: docker compose logs
@@ -88,3 +105,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Findings fail the job; PR comments would need write access.
           GITLEAKS_ENABLE_COMMENTS: false
+
+  # The one check that branch protection requires. A new job only needs adding to `needs`.
+  # It runs even when a job fails, because GitHub counts a skipped required check as passing.
+  ci-gatekeeper:
+    name: CI Gatekeeper
+    if: always()
+    needs: [backend, frontend, docker, secrets]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" = "true" ]; then
+            echo "A required job did not succeed"; exit 1
+          fi
