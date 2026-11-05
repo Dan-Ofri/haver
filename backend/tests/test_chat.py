@@ -28,7 +28,9 @@ def test_says_it_does_not_know_when_nothing_matches(client: TestClient) -> None:
     body = client.post("/api/chat", json={"message": "keto recipe for dinner"}).json()
     assert body["claims"] == []
     assert body["citations"] == []
-    assert body["not_found"]["missing"]
+    assert body["not_found"]["message"] == (
+        "I couldn't find a reliable source on keto recipe for dinner."
+    )
 
 
 def test_rejects_an_empty_message(client: TestClient) -> None:

@@ -32,4 +32,9 @@ def knowledge_dirs(plugins: list[Plugin]) -> list[Path]:
 
 def all_tools(conn: psycopg.Connection, plugins: list[Plugin]) -> list[Tool]:
     """Every tool the agent gets: knowledge search from the core, then each plugin's tools."""
-    return [search_tool(conn)] + [tool for plugin in plugins for tool in plugin.tools(conn)]
+    tools = [search_tool(conn)] + [tool for plugin in plugins for tool in plugin.tools(conn)]
+    names = [tool.name for tool in tools]
+    clashes = sorted({n for n in names if names.count(n) > 1 or n == "respond"})
+    if clashes:
+        raise ValueError(f"tool names must be unique and not 'respond': {clashes}")
+    return tools

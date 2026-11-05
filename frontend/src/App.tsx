@@ -35,7 +35,7 @@ export default function App() {
   async function send(text: string) {
     const question = text.trim()
     if (!question || busy) return
-    setDraft('')
+    if (text === draft) setDraft('')
     setTurns((prev) => [...prev, { question }])
     const update = (patch: Partial<Turn>) =>
       setTurns((prev) => prev.map((t, i) => (i === prev.length - 1 ? { ...t, ...patch } : t)))
@@ -66,7 +66,7 @@ export default function App() {
                 ))}
                 {turn.reply.not_found && (
                   <div className="not-found">
-                    <p dir="auto">{turn.reply.not_found.missing}</p>
+                    <p dir="auto">{turn.reply.not_found.message}</p>
                     {turn.reply.not_found.related.length > 0 && (
                       <p>
                         Closest topics I have:{' '}

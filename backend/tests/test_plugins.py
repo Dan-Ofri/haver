@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from haver.config import Settings
 from haver.core.llm import LLMResponse, ToolCall
-from haver.core.plugin import Plugin
+from haver.core.plugin import Plugin, all_tools
 from haver.core.tools import Source, Tool, ToolOutput
 from haver.main import create_app
 from tests.fakes import ScriptedLLM
@@ -66,3 +66,12 @@ def test_a_plugin_adds_knowledge_and_tools_without_touching_the_core(
     assert body["claims"][0]["text"] == "One document."
     ids = [row[0] for row in conn.execute("SELECT id FROM documents").fetchall()]
     assert ids == ["test-card"]
+
+
+def test_a_plugin_tool_cannot_take_a_reserved_or_used_name(conn: psycopg.Connection) -> None:
+    respond_tool = Tool(
+        name="respond", description="x", args_model=NoArgs, run=lambda _: ToolOutput(content="")
+    )
+    plugin = Plugin(name="bad", tools=lambda _conn: [respond_tool])
+    with pytest.raises(ValueError, match="respond"):
+        all_tools(conn, [plugin])

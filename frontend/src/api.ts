@@ -16,7 +16,8 @@ export interface Claim {
 }
 
 export interface NotFound {
-  missing: string
+  message: string
+  topic: string | null
   ask_instead: string[]
   related: Citation[]
 }

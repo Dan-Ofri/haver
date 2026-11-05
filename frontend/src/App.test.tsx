@@ -49,7 +49,8 @@ describe('App', () => {
       claims: [],
       citations: [],
       not_found: {
-        missing: 'Nothing on keto recipes.',
+        message: "I couldn't find a reliable source on keto recipes.",
+        topic: 'keto recipes',
         ask_instead: ['How much protein do I need?'],
         related: [{ id: 'protein', title: 'Protein for muscle', url: 'https://example.org/p' }],
       },
@@ -62,7 +63,9 @@ describe('App', () => {
     render(<App />)
     await askQuestion('Keto dinner?')
 
-    expect(await screen.findByText('Nothing on keto recipes.')).toBeInTheDocument()
+    expect(
+      await screen.findByText("I couldn't find a reliable source on keto recipes."),
+    ).toBeInTheDocument()
     expect(screen.getByText('Closest topics I have: Protein for muscle')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'How much protein do I need?' }))
     expect(await screen.findByText('About 1.6 g per kg a day. [1]')).toBeInTheDocument()

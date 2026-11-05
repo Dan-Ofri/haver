@@ -11,6 +11,10 @@ from haver.core.llm import LLMResponse, Message, ToolCall, ToolSpec
 TOP_DOCUMENT_PREFIX = '<document id="'
 
 
+def last_question(messages: list[Message]) -> str:
+    return next(m.content for m in reversed(messages) if m.role == "user")
+
+
 class OfflineLLM:
     def complete(self, system: str, messages: list[Message], tools: list[ToolSpec]) -> LLMResponse:
         last = messages[-1]
@@ -19,7 +23,7 @@ class OfflineLLM:
             return LLMResponse(tool_calls=[search])
         answer: dict[str, Any]
         if not last.content.startswith(TOP_DOCUMENT_PREFIX):
-            answer = {"missing": "Nothing in my knowledge base covers that."}
+            answer = {"missing_topic": last_question(messages)[:60]}
         else:
             doc_id = last.content.removeprefix(TOP_DOCUMENT_PREFIX).split('"', 1)[0]
             body = last.content.split(">\n", 1)[1].split("\n</document>", 1)[0]

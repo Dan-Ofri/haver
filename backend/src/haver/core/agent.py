@@ -2,7 +2,7 @@
 
 The model ends every turn by calling `respond` with a structured answer. Each claim names its
 sources, and the code keeps only claims whose every source was actually retrieved. If no claim
-survives, the user gets a helpful "not found": what was missing, close topics, better questions.
+survives, the user gets a helpful "not found": the missing topic, close topics, better questions.
 """
 
 import time
@@ -26,8 +26,8 @@ Search before answering, and call `respond` only after reading the results. If a
 nothing relevant, try up to two other phrasings in English (synonyms, broader terms) before
 giving up. Always finish by calling `respond`. Split the answer into short claims, each with the
 IDs of the documents that support it. If no document supports an answer, leave `claims` empty
-and name in `missing` only the topic you could not find, and suggest up to three short
-questions you could answer instead. Write in the language of the question.
+and name in `missing_topic` only the topic you could not find, in a few words.
+Suggest up to three short questions you could answer instead. Write in the language of the question.
 You are a coach, not a doctor: never diagnose."""
 
 RESPOND = "respond"
@@ -45,10 +45,10 @@ class ClaimIn(BaseModel):
 
 class RespondArgs(BaseModel):
     claims: list[ClaimIn] = Field(default_factory=list, max_length=8)
-    # Free text that reaches the user without a source, so it is kept short: a topic and
-    # questions, with no room for advice.
-    missing: Annotated[Text, StringConstraints(max_length=150)] | None = Field(
-        default=None, description="Only the topic you could not find, when claims is empty."
+    # Free text that reaches the user without a source, so it is kept short: a topic of a few
+    # words and short questions. The sentence around the topic is written in code.
+    missing_topic: Annotated[Text, StringConstraints(max_length=60)] | None = Field(
+        default=None, description="A few words naming what you could not find."
     )
     ask_instead: list[Annotated[Text, StringConstraints(max_length=120, pattern=r"\?$")]] = Field(
         default_factory=list, max_length=3, description="Short questions ending in '?'."
@@ -56,7 +56,7 @@ class RespondArgs(BaseModel):
 
     @model_validator(mode="after")
     def claims_or_missing(self) -> "RespondArgs":
-        if not self.claims and not self.missing:
+        if not self.claims and not self.missing_topic:
             raise ValueError("give at least one claim, or say what is missing")
         return self
 
@@ -74,7 +74,8 @@ class Claim(BaseModel):
 
 
 class NotFound(BaseModel):
-    missing: str
+    message: str
+    topic: str | None = None
     ask_instead: list[str] = Field(default_factory=list)
     related: list[Source] = Field(default_factory=list)
 
@@ -142,6 +143,7 @@ def _loop(llm: LLM, tools: list[Tool], question: str, max_steps: int) -> AgentRe
                 steps.append(_step(call.name, call.arguments, False, "invalid answer"))
                 messages.append(_tool_message(call.id, call.name, f"Error: {error}"))
                 continue
+            steps.append(_step(call.name, call.arguments, True, f"{len(args.claims)} claim(s)"))
             return _finish(args, retrieved, steps, tokens)
 
         for call in others:
@@ -154,7 +156,7 @@ def _loop(llm: LLM, tools: list[Tool], question: str, max_steps: int) -> AgentRe
             steps.append(_step(call.name, call.arguments, False, "answer sent with other calls"))
             messages.append(_tool_message(call.id, call.name, RESPOND_ALONE))
 
-    return _finish(RespondArgs(missing=NOT_FOUND), retrieved, steps, tokens)
+    return _finish(None, retrieved, steps, tokens)
 
 
 def _tool_message(call_id: str, name: str, content: str) -> Message:
@@ -183,13 +185,13 @@ def _run_tool(
 
 
 def _finish(
-    args: RespondArgs, retrieved: dict[str, Source], steps: list[Step], tokens: list[int]
+    args: RespondArgs | None, retrieved: dict[str, Source], steps: list[Step], tokens: list[int]
 ) -> AgentResult:
     """Keep a claim only if every source it names was actually retrieved."""
     claims: list[Claim] = []
     citations: list[Source] = []
     dropped: list[str] = []
-    for claim in args.claims:
+    for claim in args.claims if args else []:
         unknown = [s for s in claim.sources if s not in retrieved]
         if unknown:
             dropped += [s for s in unknown if s not in dropped]
@@ -199,9 +201,12 @@ def _finish(
 
     not_found = None
     if not claims:
+        topic = args.missing_topic if args else None
+        message = f"I couldn't find a reliable source on {topic}." if topic else NOT_FOUND
         not_found = NotFound(
-            missing=(args.missing or NOT_FOUND).strip(),
-            ask_instead=args.ask_instead,
+            message=message,
+            topic=topic,
+            ask_instead=args.ask_instead if args else [],
             related=list(retrieved.values())[:3],
         )
     return AgentResult(
