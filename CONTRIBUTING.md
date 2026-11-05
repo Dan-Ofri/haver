@@ -9,10 +9,13 @@
 ## Pull requests
 
 1. Small and focused, linked to the spec item it serves.
-2. CI must be green: lint, format, type checks, tests, builds and secret scanning.
+2. CI must be green: lint, backend format check, type checks, tests, builds and secret scanning.
 3. Every pull request gets an independent review from a reviewer with no prior context (a fresh
-   AI reviewer agent), and the findings are fixed or answered before human review.
-4. The owner reviews and merges.
+   AI reviewer agent). After blocking findings are fixed, a new fresh reviewer checks again, until
+   one approves. Non-blocking suggestions do not start another round. After three rounds without
+   approval, the owner decides.
+4. The owner reads a short summary of the pull request (what changed, decisions and why, how it
+   was checked, open questions) and approves it before it is merged.
 
 ## Commits
 

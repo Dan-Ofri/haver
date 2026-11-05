@@ -20,5 +20,6 @@ Read `docs/SPEC.md` and `docs/adr/` before changing behaviour. The spec is the s
 
 ## Workflow
 
-Branch from `develop`, open a pull request to `develop`, conventional commit messages. See
-`CONTRIBUTING.md`.
+Branch from `develop`, open a pull request to `develop`, conventional commit messages. Run fresh
+reviewer rounds until one approves, then send the owner a summary and merge only after approval.
+See `CONTRIBUTING.md`.

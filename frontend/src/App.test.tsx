@@ -25,6 +25,13 @@ describe('App', () => {
     expect(screen.getByText('Database: down')).toBeInTheDocument()
   })
 
+  it('shows everything as down when the API returns an error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({}, 500)))
+    render(<App />)
+    expect(await screen.findByText('API: down')).toBeInTheDocument()
+    expect(screen.getByText('Database: down')).toBeInTheDocument()
+  })
+
   it('shows everything as down when the request fails', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')))
     render(<App />)

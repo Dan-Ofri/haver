@@ -11,7 +11,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=("../.env", ".env"), env_ignore_empty=True, extra="ignore"
+    )
 
     database_url: str = "postgresql://haver:haver@localhost:5432/haver"
     gemini_api_key: SecretStr | None = None
