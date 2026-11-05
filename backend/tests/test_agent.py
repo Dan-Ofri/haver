@@ -77,8 +77,9 @@ def test_an_answer_sent_with_a_search_is_refused_whatever_the_order() -> None:
         llm = ScriptedLLM(LLMResponse(tool_calls=calls), respond(claims=[claim("Sleep.", "sleep")]))
         result = run_agent(llm, [lookup_tool()], "q")
         assert [c.text for c in result.claims] == ["Sleep."]
-        assert [(s.tool, s.ok) for s in result.steps][:2] == [("lookup", True), ("respond", False)]
-        assert llm.calls[1][-1].content == RESPOND_ALONE
+        replies = [(m.tool_name, m.content) for m in llm.calls[1] if m.role == "tool"]
+        expected = [("lookup", "facts about sleep"), ("respond", RESPOND_ALONE)]
+        assert replies == (expected[::-1] if answer_first else expected)
 
 
 def test_free_text_fields_cannot_carry_advice() -> None:
@@ -206,3 +207,11 @@ def test_every_answer_in_a_turn_gets_its_own_response() -> None:
         ("b", RESPOND_ONCE),
     ]
     assert result.not_found is not None and result.not_found.topic == "z"
+
+
+def test_all_claims_dropped_without_a_topic_gives_the_generic_not_found() -> None:
+    answer = respond(claims=[claim("Invented.", "made-up")], ask_instead=["How long to sleep?"])
+    result = run_agent(ScriptedLLM(call(topic="sleep"), answer), [lookup_tool()], "q")
+    assert result.not_found is not None
+    assert result.not_found.message == NOT_FOUND
+    assert result.not_found.ask_instead == ["How long to sleep?"]

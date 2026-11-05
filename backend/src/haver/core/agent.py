@@ -136,13 +136,7 @@ def _loop(llm: LLM, tools: list[Tool], question: str, max_steps: int) -> AgentRe
 
         answers = [c for c in response.tool_calls if c.name == RESPOND]
         others = [c for c in response.tool_calls if c.name != RESPOND]
-        if len(answers) > 1 and not others:
-            # Every call needs its own response, or providers reject the conversation.
-            for call in answers:
-                steps.append(_step(call.name, call.arguments, False, "more than one answer"))
-                messages.append(_tool_message(call.id, call.name, RESPOND_ONCE))
-            continue
-        if answers and not others:
+        if len(answers) == 1 and not others:
             call = answers[0]
             try:
                 args = RespondArgs.model_validate(call.arguments)
@@ -153,15 +147,24 @@ def _loop(llm: LLM, tools: list[Tool], question: str, max_steps: int) -> AgentRe
             steps.append(_step(call.name, call.arguments, True, f"{len(args.claims)} claim(s)"))
             return _finish(args, retrieved, steps, tokens)
 
-        for call in others:
-            content, step = _run_tool(by_name.get(call.name), call.name, call.arguments, retrieved)
-            steps.append(step)
-            messages.append(_tool_message(call.id, call.name, content))
-        # An answer sent alongside a search was written before reading its results, so it
-        # could cite documents the model never saw. It is refused, not graded.
-        for call in answers:
-            steps.append(_step(call.name, call.arguments, False, "answer sent with other calls"))
-            messages.append(_tool_message(call.id, call.name, RESPOND_ALONE))
+        # Every call gets exactly one reply, in call order, or providers reject the history.
+        for call in response.tool_calls:
+            if call.name != RESPOND:
+                content, step = _run_tool(
+                    by_name.get(call.name), call.name, call.arguments, retrieved
+                )
+                steps.append(step)
+                messages.append(_tool_message(call.id, call.name, content))
+            elif others:
+                # Written before reading this turn's results, so it could cite documents the
+                # model never saw. It is refused, not graded.
+                steps.append(
+                    _step(call.name, call.arguments, False, "answer sent with other calls")
+                )
+                messages.append(_tool_message(call.id, call.name, RESPOND_ALONE))
+            else:
+                steps.append(_step(call.name, call.arguments, False, "more than one answer"))
+                messages.append(_tool_message(call.id, call.name, RESPOND_ONCE))
 
     return _finish(None, retrieved, steps, tokens, out_of_steps=True)
 

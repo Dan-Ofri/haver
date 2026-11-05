@@ -37,3 +37,15 @@ def test_gemini_gets_the_model_turn_back_unchanged_and_tool_answers_together() -
     assert [c.role for c in contents] == ["user", "model", "user"]
     assert contents[1] is model_turn
     assert contents[2].parts is not None and len(contents[2].parts) == 2
+
+
+def test_gemini_skips_empty_model_turns() -> None:
+    contents = _to_contents(
+        [
+            Message(role="user", content="q"),
+            Message(role="assistant", provider_data=types.Content(role="model", parts=None)),
+            Message(role="assistant"),
+            Message(role="user", content="Reply by calling the `respond` tool."),
+        ]
+    )
+    assert [c.role for c in contents] == ["user", "user"]
