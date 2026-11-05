@@ -1,0 +1,9 @@
+/* Placeholder styles. The real design system arrives in phase 5, after the mock is approved. */
+:root {
+  font-family: system-ui, sans-serif;
+  color: #1f1d1a;
+  background: #faf8f5;
+}
+.shell { max-width: 40rem; margin: 20vh auto; padding: 0 1rem; }
+.tagline { color: #6b655d; }
+.status { font-size: 0.875rem; color: #6b655d; }

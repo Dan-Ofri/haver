@@ -8,8 +8,8 @@ what matters about you, cites every source, and knows when to send you to a doct
 
 ## Why not just a chat assistant?
 
-A chat assistant works for a power user who manages it. Haver does in code what a chat leaves to
-the user:
+A chat assistant works for a power user who manages it. Haver is designed to do in code what a
+chat leaves to the user (planned for v1, see the [roadmap](#roadmap)):
 
 - **Numbers come from your data**, computed by tools, not estimated by the model.
 - **Safety is enforced in code**, not requested in a prompt.
@@ -47,10 +47,10 @@ Open http://localhost:8080.
 Backend (Python 3.13, [uv](https://docs.astral.sh/uv/)):
 
 ```bash
+docker compose up -d db   # the database, from the repository root
 cd backend
 uv sync
-uv run pytest
-uv run ruff check . && uv run mypy src tests
+uv run ruff check . && uv run ruff format --check . && uv run mypy src tests && uv run pytest
 uv run uvicorn haver.main:app --reload
 ```
 
@@ -58,8 +58,8 @@ Frontend (Node 22):
 
 ```bash
 cd frontend
-npm install
-npm test
+npm ci
+npm run lint && npm run typecheck && npm test && npm run build
 npm run dev
 ```
 
