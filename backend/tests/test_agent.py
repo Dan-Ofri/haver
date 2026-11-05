@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from haver.core.agent import NOT_FOUND, NUDGE, RESPOND_SPEC, run_agent
+from haver.core.agent import NOT_FOUND, NUDGE, RESPOND_ALONE, RESPOND_SPEC, run_agent
 from haver.core.llm import LLMResponse, ToolCall
 from haver.core.tools import Source, Tool, ToolOutput
 from tests.fakes import ScriptedLLM
@@ -52,7 +52,37 @@ def test_answers_with_claims_and_their_sources() -> None:
 def test_respond_is_offered_to_the_model() -> None:
     llm = ScriptedLLM(respond(missing="x"))
     run_agent(llm, [lookup_tool()], "q")
-    assert RESPOND_SPEC.parameters["properties"]["claims"]["items"]["properties"]["sources"]
+    assert [t.name for t in llm.tools[0]] == ["lookup", "respond"]
+    assert llm.tools[0][1] == RESPOND_SPEC
+    assert "$ref" not in str(RESPOND_SPEC.parameters)
+
+
+def test_an_answer_sent_with_a_search_is_refused_whatever_the_order() -> None:
+    for answer_first in (True, False):
+        invented = {"claims": [claim("Take 10 mg melatonin.", "sleep")]}
+        calls = [
+            ToolCall(id="1", name="lookup", arguments={"topic": "sleep"}),
+            ToolCall(id="2", name="respond", arguments=invented),
+        ]
+        if answer_first:
+            calls.reverse()
+        llm = ScriptedLLM(LLMResponse(tool_calls=calls), respond(claims=[claim("Sleep.", "sleep")]))
+        result = run_agent(llm, [lookup_tool()], "q")
+        assert [c.text for c in result.claims] == ["Sleep."]
+        assert [(s.tool, s.ok) for s in result.steps] == [("lookup", True), ("respond", False)]
+        assert llm.calls[1][-1].content == RESPOND_ALONE
+
+
+def test_free_text_fields_cannot_carry_advice() -> None:
+    long_question = "Adults need 1.6 g/kg of protein a day, " * 4 + "right?"
+    for answer in (
+        respond(missing="   "),
+        respond(missing="x" * 151),
+        respond(missing="Keto.", ask_instead=["Eat 1.6 g/kg of protein."]),
+        respond(missing="Keto.", ask_instead=[long_question]),
+    ):
+        result = run_agent(ScriptedLLM(answer, respond(missing="Keto.")), [lookup_tool()], "q")
+        assert result.steps[0].detail == "invalid answer"
 
 
 def test_drops_each_claim_with_a_source_never_retrieved() -> None:

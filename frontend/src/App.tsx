@@ -9,8 +9,9 @@ interface Turn {
 
 /** A claim followed by the numbers of its sources in the list below the answer. */
 function withNumbers(claim: Claim, citations: Citation[]): string {
-  const numbers = claim.source_ids.map((id) => citations.findIndex((c) => c.id === id) + 1)
-  return `${claim.text} ${numbers.map((n) => `[${n}]`).join('')}`
+  const numbers = new Set(claim.source_ids.map((id) => citations.findIndex((c) => c.id === id) + 1))
+  numbers.delete(0)
+  return `${claim.text} ${[...numbers].map((n) => `[${n}]`).join('')}`.trim()
 }
 
 /** One quiet line: which tools ran, how long it took, how many tokens it used. */
@@ -74,8 +75,8 @@ export default function App() {
                     )}
                     {turn.reply.not_found.ask_instead.length > 0 && (
                       <div className="suggestions">
-                        {turn.reply.not_found.ask_instead.map((q) => (
-                          <button key={q} type="button" dir="auto" onClick={() => void send(q)}>
+                        {turn.reply.not_found.ask_instead.map((q, k) => (
+                          <button key={k} type="button" dir="auto" onClick={() => void send(q)}>
                             {q}
                           </button>
                         ))}

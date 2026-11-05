@@ -37,7 +37,10 @@ class Tool:
 
 
 def json_schema(model: type[BaseModel]) -> dict[str, Any]:
-    """The model's JSON schema with every $ref inlined, since not every provider resolves them."""
+    """The model's JSON schema with every $ref inlined, since not every provider resolves them.
+
+    Recursive models are not supported: inlining them would never end.
+    """
     schema = model.model_json_schema()
     definitions = schema.pop("$defs", {})
 

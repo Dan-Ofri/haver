@@ -13,7 +13,7 @@ from haver.config import Settings, get_settings
 from haver.core import knowledge
 from haver.core.agent import AgentResult, run_agent
 from haver.core.llm import LLM
-from haver.core.plugin import Plugin, knowledge_dirs
+from haver.core.plugin import Plugin, all_tools, knowledge_dirs
 from haver.plugins import PLUGINS
 from haver.providers import build_llm
 
@@ -59,8 +59,7 @@ def create_app(
     def chat(request: ChatRequest) -> AgentResult:
         with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
             ensure_knowledge(conn)
-            tools = [knowledge.search_tool(conn)] + [t for p in plugins for t in p.tools(conn)]
-            return run_agent(model, tools, request.message)
+            return run_agent(model, all_tools(conn, plugins), request.message)
 
     return app
 

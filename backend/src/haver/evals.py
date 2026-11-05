@@ -16,7 +16,7 @@ from haver.config import get_settings
 from haver.core import knowledge
 from haver.core.agent import AgentResult, run_agent
 from haver.core.llm import LLM
-from haver.core.plugin import knowledge_dirs
+from haver.core.plugin import Plugin, all_tools, knowledge_dirs
 from haver.plugins import PLUGINS
 from haver.providers import build_llm
 
@@ -39,13 +39,15 @@ def passed(case: Case, result: AgentResult) -> bool:
     return set(case.expected_citations) <= cited
 
 
-def run(llm: LLM, conn: psycopg.Connection, cases: list[Case]) -> list[tuple[Case, bool]]:
-    knowledge.load(conn, knowledge_dirs(PLUGINS))
-    tool = knowledge.search_tool(conn)
+def run(
+    llm: LLM, conn: psycopg.Connection, cases: list[Case], plugins: list[Plugin] = PLUGINS
+) -> list[tuple[Case, bool]]:
+    knowledge.load(conn, knowledge_dirs(plugins))
+    tools = all_tools(conn, plugins)
     outcomes = []
     for case in cases:
         start = time.perf_counter()
-        result = run_agent(llm, [tool], case.question)
+        result = run_agent(llm, tools, case.question)
         ok = passed(case, result)
         outcomes.append((case, ok))
         seconds = time.perf_counter() - start

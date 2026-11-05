@@ -6,6 +6,7 @@ from pathlib import Path
 
 import psycopg
 
+from haver.core.knowledge import search_tool
 from haver.core.tools import Tool
 
 
@@ -27,3 +28,8 @@ class Plugin:
 
 def knowledge_dirs(plugins: list[Plugin]) -> list[Path]:
     return [p.knowledge_dir for p in plugins if p.knowledge_dir is not None]
+
+
+def all_tools(conn: psycopg.Connection, plugins: list[Plugin]) -> list[Tool]:
+    """Every tool the agent gets: knowledge search from the core, then each plugin's tools."""
+    return [search_tool(conn)] + [tool for plugin in plugins for tool in plugin.tools(conn)]
