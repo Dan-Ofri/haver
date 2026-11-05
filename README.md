@@ -36,11 +36,25 @@ acceptance criterion for every scenario, is in [docs/SPEC.md](docs/SPEC.md).
 Requirements: Docker.
 
 ```bash
-cp .env.example .env      # then add your keys
+cp .env.example .env      # works as is, with the offline stand-in model
 docker compose up --build
 ```
 
-Open http://localhost:8080.
+Open http://localhost:8080 and ask a question. To use Gemini, set `LLM_PROVIDER=gemini` and
+`GEMINI_API_KEY` in `.env`.
+
+The offline model needs no key: it searches once and quotes the top document. It proves that every
+layer is wired together, not that answers are good.
+
+## Evaluate
+
+The eval set in [backend/evals/cases.json](backend/evals/cases.json) runs against the configured
+model. With Gemini it uses your quota.
+
+```bash
+docker compose up -d db
+cd backend && uv run python -m haver.evals
+```
 
 ## Develop
 

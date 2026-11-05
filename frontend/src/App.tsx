@@ -1,42 +1,92 @@
-import { useEffect, useState } from 'react'
+import { type FormEvent, useState } from 'react'
+import { type ChatAnswer, type Citation, ask } from './api'
 
-type Status = 'checking' | 'ok' | 'down'
-
-interface Health {
-  api: Status
-  database: Status
+interface Turn {
+  question: string
+  reply?: ChatAnswer
+  error?: boolean
 }
 
-const CHECKING: Health = { api: 'checking', database: 'checking' }
-const DOWN: Health = { api: 'down', database: 'down' }
+const CITATION = /\s*\[doc:([\w-]+)\]/g
+
+/** Replace [doc:id] markers with the citation's number in the sources list. */
+function withNumbers(text: string, citations: Citation[]): string {
+  return text.replace(CITATION, (_, id: string) => {
+    const index = citations.findIndex((c) => c.id === id)
+    return index === -1 ? '' : ` [${index + 1}]`
+  })
+}
 
 export default function App() {
-  const [health, setHealth] = useState<Health>(CHECKING)
+  const [turns, setTurns] = useState<Turn[]>([])
+  const [draft, setDraft] = useState('')
+  const busy = turns.length > 0 && !turns.at(-1)?.reply && !turns.at(-1)?.error
 
-  useEffect(() => {
-    const controller = new AbortController()
-    fetch('/api/health', { signal: controller.signal })
-      .then(async (res) => {
-        if (!res.ok) return setHealth(DOWN)
-        const body = (await res.json()) as { database?: string }
-        setHealth({ api: 'ok', database: body.database === 'ok' ? 'ok' : 'down' })
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setHealth(DOWN)
-      })
-    return () => controller.abort()
-  }, [])
+  async function submit(event: FormEvent) {
+    event.preventDefault()
+    const question = draft.trim()
+    if (!question || busy) return
+    setDraft('')
+    setTurns((prev) => [...prev, { question }])
+    const update = (patch: Partial<Turn>) =>
+      setTurns((prev) => prev.map((t, i) => (i === prev.length - 1 ? { ...t, ...patch } : t)))
+    try {
+      update({ reply: await ask(question) })
+    } catch {
+      update({ error: true })
+    }
+  }
 
   return (
     <main className="shell">
       <h1>Haver</h1>
       <p className="tagline">A personal coach that knows you.</p>
-      <p className="status" data-state={health.api}>
-        API: {health.api}
-      </p>
-      <p className="status" data-state={health.database}>
-        Database: {health.database}
-      </p>
+
+      <ol className="turns" aria-live="polite">
+        {turns.map((turn, i) => (
+          <li key={i}>
+            <p className="question">{turn.question}</p>
+            {turn.error && <p className="error">Something went wrong. Please try again.</p>}
+            {!turn.reply && !turn.error && <p className="status">Thinking…</p>}
+            {turn.reply && (
+              <div className="reply">
+                <p>{withNumbers(turn.reply.answer, turn.reply.citations)}</p>
+                {turn.reply.citations.length > 0 && (
+                  <ol className="sources" aria-label="Sources">
+                    {turn.reply.citations.map((c) => (
+                      <li key={c.id}>
+                        <a href={c.url} target="_blank" rel="noreferrer">
+                          {c.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+                <p className="status">
+                  {turn.reply.steps.map((s) => `${s.tool}: ${s.detail}`).join(' · ')}
+                </p>
+              </div>
+            )}
+          </li>
+        ))}
+      </ol>
+
+      <form onSubmit={submit}>
+        <label htmlFor="message" className="visually-hidden">
+          Your question
+        </label>
+        <input
+          id="message"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Ask about training, sleep or nutrition"
+          maxLength={2000}
+          autoComplete="off"
+        />
+        <button type="submit" disabled={busy || !draft.trim()}>
+          Ask
+        </button>
+      </form>
     </main>
   )
 }

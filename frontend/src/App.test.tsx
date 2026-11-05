@@ -1,41 +1,51 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 
+const answer = {
+  answer: 'About 1.6 g per kg a day. [doc:protein] [doc:missing]',
+  citations: [{ id: 'protein', title: 'Protein for muscle', url: 'https://example.org/p' }],
+  steps: [{ tool: 'search_knowledge', ok: true, detail: '1 result(s)' }],
+}
+
+async function askQuestion(text: string) {
+  await userEvent.type(screen.getByLabelText('Your question'), text)
+  await userEvent.click(screen.getByRole('button', { name: 'Ask' }))
+}
+
 describe('App', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('shows the API and database as ok when both are healthy', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({ status: 'ok', database: 'ok' })))
+  it('sends the question and shows the answer with numbered sources', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(json(answer))
+    vi.stubGlobal('fetch', fetchMock)
     render(<App />)
-    expect(await screen.findByText('API: ok')).toBeInTheDocument()
-    expect(screen.getByText('Database: ok')).toBeInTheDocument()
-  })
+    await askQuestion('How much protein?')
 
-  it('shows the database as down when the API reports it unavailable', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(json({ status: 'ok', database: 'unavailable' })),
+    expect(await screen.findByText('About 1.6 g per kg a day. [1]')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Protein for muscle' })).toHaveAttribute(
+      'href',
+      'https://example.org/p',
     )
-    render(<App />)
-    expect(await screen.findByText('API: ok')).toBeInTheDocument()
-    expect(screen.getByText('Database: down')).toBeInTheDocument()
+    expect(screen.getByText('search_knowledge: 1 result(s)')).toBeInTheDocument()
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('/api/chat')
+    expect(JSON.parse(init.body as string)).toEqual({ message: 'How much protein?' })
   })
 
-  it('shows everything as down when the API returns an error', async () => {
+  it('shows an error when the request fails', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({}, 500)))
     render(<App />)
-    expect(await screen.findByText('API: down')).toBeInTheDocument()
-    expect(screen.getByText('Database: down')).toBeInTheDocument()
+    await askQuestion('Hello')
+    expect(await screen.findByText('Something went wrong. Please try again.')).toBeInTheDocument()
   })
 
-  it('shows everything as down when the request fails', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')))
+  it('does not send an empty question', () => {
     render(<App />)
-    expect(await screen.findByText('API: down')).toBeInTheDocument()
-    expect(screen.getByText('Database: down')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ask' })).toBeDisabled()
   })
 })
