@@ -1,7 +1,8 @@
 """Run the eval set against the configured model and database: uv run python -m haver.evals
 
 A case passes when the answer cites every expected document, or, when none is expected,
-says it doesn't know and cites nothing. Runs on the real provider, so it costs quota.
+says it doesn't know and cites nothing. Runs against the configured model: with Gemini it
+uses your quota.
 """
 
 import sys

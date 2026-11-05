@@ -84,7 +84,7 @@ def search(conn: psycopg.Connection, query: str, limit: int = 3) -> list[Documen
 
 
 class SearchArgs(BaseModel):
-    query: str = Field(min_length=1, max_length=300, description="Keywords in English.")
+    query: str = Field(min_length=1, max_length=2000, description="Keywords in English.")
 
 
 def search_tool(conn: psycopg.Connection) -> Tool:

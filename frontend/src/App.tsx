@@ -53,12 +53,12 @@ export default function App() {
       <ol className="turns" aria-live="polite">
         {turns.map((turn, i) => (
           <li key={i}>
-            <p className="question">{turn.question}</p>
+            <p className="question" dir="auto">{turn.question}</p>
             {turn.error && <p className="error">Something went wrong. Please try again.</p>}
             {!turn.reply && !turn.error && <p className="status">Thinking…</p>}
             {turn.reply && (
               <div className="reply">
-                <p>{withNumbers(turn.reply.answer, turn.reply.citations)}</p>
+                <p dir="auto">{withNumbers(turn.reply.answer, turn.reply.citations)}</p>
                 {turn.reply.citations.length > 0 && (
                   <ol className="sources" aria-label="Sources">
                     {turn.reply.citations.map((c) => (
@@ -83,6 +83,7 @@ export default function App() {
         </label>
         <input
           id="message"
+          dir="auto"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Ask about training, sleep or nutrition"
