@@ -23,7 +23,8 @@ class OfflineLLM:
             return LLMResponse(tool_calls=[search])
         answer: dict[str, Any]
         if not last.content.startswith(TOP_DOCUMENT_PREFIX):
-            answer = {"missing_topic": last_question(messages)[:60]}
+            topic = last_question(messages).strip().rstrip("?.!") or "that"
+            answer = {"missing_topic": topic[:60]}
         else:
             doc_id = last.content.removeprefix(TOP_DOCUMENT_PREFIX).split('"', 1)[0]
             body = last.content.split(">\n", 1)[1].split("\n</document>", 1)[0]

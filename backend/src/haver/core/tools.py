@@ -8,6 +8,9 @@ from pydantic import BaseModel
 
 from haver.core.llm import ToolSpec
 
+# The name of the agent's final-answer tool, reserved so no plugin tool can take it.
+RESPOND = "respond"
+
 
 class Source(BaseModel):
     """A piece of content a tool returned, which an answer may cite."""

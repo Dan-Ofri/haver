@@ -68,7 +68,7 @@ export default function App() {
                   <div className="not-found">
                     <p dir="auto">{turn.reply.not_found.message}</p>
                     {turn.reply.not_found.related.length > 0 && (
-                      <p>
+                      <p dir="auto">
                         Closest topics I have:{' '}
                         {turn.reply.not_found.related.map((r) => r.title).join(', ')}
                       </p>

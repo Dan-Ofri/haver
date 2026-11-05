@@ -2,7 +2,15 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from haver.core.agent import NOT_FOUND, NUDGE, RESPOND_ALONE, RESPOND_SPEC, run_agent
+from haver.core.agent import (
+    NOT_FOUND,
+    NUDGE,
+    RESPOND_ALONE,
+    RESPOND_ONCE,
+    RESPOND_SPEC,
+    STEP_LIMIT,
+    run_agent,
+)
 from haver.core.llm import LLMResponse, ToolCall
 from haver.core.tools import Source, Tool, ToolOutput
 from tests.fakes import ScriptedLLM
@@ -109,7 +117,8 @@ def test_not_found_is_helpful() -> None:
     assert result.citations == []
 
 
-def test_retries_the_search_before_giving_up() -> None:
+def test_the_loop_allows_searching_again_before_answering() -> None:
+    # Whether a real model retries is up to the prompt, and is measured by the eval set.
     llm = ScriptedLLM(
         call(topic="nothing"),
         call(topic="sleep"),
@@ -154,7 +163,7 @@ def test_stops_at_the_step_limit() -> None:
     llm = ScriptedLLM(*[call(topic="x") for _ in range(3)])
     result = run_agent(llm, [lookup_tool()], "q", max_steps=3)
     assert result.claims == []
-    assert result.not_found is not None and result.not_found.message == NOT_FOUND
+    assert result.not_found is not None and result.not_found.message == STEP_LIMIT
     assert len(result.steps) == 3
 
 
@@ -176,7 +185,24 @@ def test_a_nudge_followed_by_a_valid_answer_works() -> None:
     assert [c.text for c in result.claims] == ["Sleep."]
 
 
-def test_an_invalid_answer_on_the_last_step_becomes_not_found() -> None:
+def test_an_invalid_answer_on_the_last_step_ends_with_the_step_limit() -> None:
     llm = ScriptedLLM(call(topic="sleep"), respond(claims=[]))
     result = run_agent(llm, [lookup_tool()], "q", max_steps=2)
-    assert result.not_found is not None and result.not_found.message == NOT_FOUND
+    assert result.not_found is not None and result.not_found.message == STEP_LIMIT
+
+
+def test_every_answer_in_a_turn_gets_its_own_response() -> None:
+    two = LLMResponse(
+        tool_calls=[
+            ToolCall(id="a", name="respond", arguments={"missing_topic": "x"}),
+            ToolCall(id="b", name="respond", arguments={"missing_topic": "y"}),
+        ]
+    )
+    llm = ScriptedLLM(two, respond(missing_topic="z"))
+    result = run_agent(llm, [lookup_tool()], "q")
+    replies = [m for m in llm.calls[1] if m.role == "tool"]
+    assert [(m.tool_call_id, m.content) for m in replies] == [
+        ("a", RESPOND_ONCE),
+        ("b", RESPOND_ONCE),
+    ]
+    assert result.not_found is not None and result.not_found.topic == "z"

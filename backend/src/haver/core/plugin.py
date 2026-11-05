@@ -7,7 +7,7 @@ from pathlib import Path
 import psycopg
 
 from haver.core.knowledge import search_tool
-from haver.core.tools import Tool
+from haver.core.tools import RESPOND, Tool
 
 
 def _no_tools(conn: psycopg.Connection) -> list[Tool]:
@@ -34,7 +34,7 @@ def all_tools(conn: psycopg.Connection, plugins: list[Plugin]) -> list[Tool]:
     """Every tool the agent gets: knowledge search from the core, then each plugin's tools."""
     tools = [search_tool(conn)] + [tool for plugin in plugins for tool in plugin.tools(conn)]
     names = [tool.name for tool in tools]
-    clashes = sorted({n for n in names if names.count(n) > 1 or n == "respond"})
+    clashes = sorted({n for n in names if names.count(n) > 1 or n == RESPOND})
     if clashes:
         raise ValueError(f"tool names must be unique and not 'respond': {clashes}")
     return tools
