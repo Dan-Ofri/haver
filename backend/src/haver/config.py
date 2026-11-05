@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     # "offline" needs no key: a deterministic stand-in that proves the wiring, not the answers.
     llm_provider: Literal["offline", "gemini"] = "offline"
     gemini_model: str = "gemini-3.8-flash"
+    gemini_embedding_model: str = "gemini-embedding-2"
 
 
 @lru_cache
