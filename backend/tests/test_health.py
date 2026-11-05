@@ -1,13 +1,20 @@
+from collections.abc import Iterator
+
 import pytest
 from fastapi.testclient import TestClient
 
 from haver import db
+from haver.config import Settings, get_settings
 from haver.main import create_app
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(create_app())
+def client() -> Iterator[TestClient]:
+    app = create_app()
+    # Hermetic: never read a developer's real .env during tests.
+    app.dependency_overrides[get_settings] = lambda: Settings(_env_file=None)
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 def test_health_reports_database_ok(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

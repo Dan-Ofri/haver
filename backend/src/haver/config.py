@@ -1,16 +1,17 @@
-"""Runtime settings, read from environment variables or the repository's .env file."""
+"""Runtime settings, read from environment variables or a .env file.
+
+Environment variables win. For local runs from `backend/`, the repository's `../.env` is read.
+In Docker, Compose injects the variables and no file is needed.
+"""
 
 from functools import lru_cache
-from pathlib import Path
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=REPO_ROOT / ".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
 
     database_url: str = "postgresql://haver:haver@localhost:5432/haver"
     gemini_api_key: SecretStr | None = None

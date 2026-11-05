@@ -8,7 +8,8 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded pull-request runs are cancelled; runs on main and develop always finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -62,6 +63,16 @@ jobs:
       - uses: actions/checkout@v5
       - name: Build images
         run: docker compose build
+      - name: Start the stack
+        run: docker compose up -d --wait
+      - name: Health check through the web proxy
+        run: curl -fsS localhost:8080/api/health | grep -q '"database":"ok"'
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v
 
   secrets:
     runs-on: ubuntu-latest
@@ -75,3 +86,5 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Findings fail the job; PR comments would need write access.
+          GITLEAKS_ENABLE_COMMENTS: false

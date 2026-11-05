@@ -1,7 +1,7 @@
 # Haver: product specification
 
 Status: v1 in progress. This file is the source of truth for what the product does.
-Every acceptance criterion below maps to an automated test or to a question in the eval set.
+Each acceptance criterion below is designed to map to an automated test or to a question in the eval set as its version is built.
 
 ## Problem
 
