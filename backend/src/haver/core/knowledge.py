@@ -17,6 +17,7 @@ from haver.core.tools import Source, Tool, ToolOutput
 # Each ranking contributes its top results; 60 is the standard damping constant for fusion.
 CANDIDATES = 10
 RRF_K = 60
+EMBED_BATCH = 50  # provider limits are around 100 texts per request
 
 SCHEMA = f"""
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -32,6 +33,9 @@ CREATE TABLE IF NOT EXISTS documents (
     embedding_model text,
     embedding vector({DIMENSIONS})
 );
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS content_hash text NOT NULL DEFAULT '';
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS embedding_model text;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS embedding vector({DIMENSIONS});
 CREATE INDEX IF NOT EXISTS documents_search_idx ON documents USING gin (search);
 """
 
@@ -82,7 +86,12 @@ def load(conn: psycopg.Connection, folders: list[Path], embedder: Embedder) -> i
             for row in conn.execute("SELECT id, content_hash, embedding_model FROM documents")
         }
         stale = [d for d in documents if known.get(d.id) != (d.content_hash, embedder.name)]
-        vectors = embedder.embed([f"{d.title}\n{d.body}" for d in stale])
+        texts = [f"{d.title}\n{d.body}" for d in stale]
+        vectors = [
+            v
+            for i in range(0, len(texts), EMBED_BATCH)
+            for v in embedder.embed(texts[i : i + EMBED_BATCH])
+        ]
         by_id = {d.id: _literal(v) for d, v in zip(stale, vectors, strict=True)}
         for doc in documents:
             conn.execute(
@@ -127,7 +136,8 @@ def _vector_ids(conn: psycopg.Connection, query: str, embedder: Embedder) -> lis
     rows = conn.execute(
         """
         SELECT id FROM documents
-        WHERE embedding_model = %(model)s AND 1 - (embedding <=> %(v)s::vector) >= %(min)s
+        WHERE embedding_model = %(model)s AND vector_norm(embedding) > 0
+          AND 1 - (embedding <=> %(v)s::vector) >= %(min)s
         ORDER BY embedding <=> %(v)s::vector, id
         LIMIT %(n)s
         """,

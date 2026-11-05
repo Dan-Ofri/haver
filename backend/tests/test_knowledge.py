@@ -118,3 +118,32 @@ def test_hashing_embedder_ranks_shared_words_and_ignores_unrelated_text() -> Non
     a, b, c = EMBEDDER.embed(["protein muscle", "protein for muscle gain", "keto dinner"])
     assert similarity(a, b) > 0.7
     assert similarity(a, c) < EMBEDDER.min_similarity
+
+
+def test_upgrades_a_table_from_before_embeddings(conn: psycopg.Connection) -> None:
+    conn.execute(
+        "CREATE TABLE documents (id text PRIMARY KEY, title text NOT NULL, url text NOT NULL,"
+        " body text NOT NULL, search tsvector GENERATED ALWAYS AS"
+        " (to_tsvector('english', title || ' ' || body)) STORED)"
+    )
+    knowledge.load(conn, DIRS, EMBEDDER)
+    assert knowledge.search(conn, "protein muscle", EMBEDDER)
+
+
+def test_never_embeds_an_empty_list(conn: psycopg.Connection) -> None:
+    class Strict(CountingEmbedder):
+        def embed(self, texts: list[str]) -> list[list[float]]:
+            assert texts
+            return super().embed(texts)
+
+    embedder = Strict()
+    knowledge.load(conn, DIRS, embedder)
+    knowledge.load(conn, DIRS, embedder)
+
+
+def test_a_document_with_no_vector_direction_is_not_returned(
+    tmp_path: Path, conn: psycopg.Connection
+) -> None:
+    (tmp_path / "empty.md").write_text("# The\nSource: https://x.org\nthe and of")
+    knowledge.load(conn, [tmp_path], EMBEDDER)
+    assert knowledge.search(conn, "protein muscle", EMBEDDER) == []
