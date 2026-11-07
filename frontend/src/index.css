@@ -22,3 +22,8 @@ input { flex: 1; padding: 0.5rem; font: inherit; }
   padding: 0.75rem 1rem;
   font-weight: 600;
 }
+
+.memory { margin-top: 2rem; }
+.memory ul { list-style: none; padding: 0; }
+.memory li { display: flex; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+.memory li span { flex: 1; }

@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from 'react'
+import MemoryPanel from './MemoryPanel'
 import { type ChatAnswer, type Citation, type Claim, ask } from './api'
 
 interface Turn {
@@ -130,6 +131,8 @@ export default function App() {
           Ask
         </button>
       </form>
+
+      <MemoryPanel />
     </main>
   )
 }
