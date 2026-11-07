@@ -2,6 +2,8 @@
 
 It searches once with the question and answers with the first paragraph of the top result.
 It shows that every layer is wired together, not that answers are good.
+Asked to classify without tools (the safety check), it answers "none": it has no judgment, so
+safety without a real model rests on the patterns in code.
 """
 
 from typing import Any
@@ -17,6 +19,8 @@ def last_question(messages: list[Message]) -> str:
 
 class OfflineLLM:
     def complete(self, system: str, messages: list[Message], tools: list[ToolSpec]) -> LLMResponse:
+        if not tools:
+            return LLMResponse(text="none")
         last = messages[-1]
         if last.role == "user":
             search = ToolCall(id="1", name="search_knowledge", arguments={"query": last.content})

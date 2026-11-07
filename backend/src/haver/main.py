@@ -2,6 +2,7 @@
 
 import logging
 import threading
+import time
 from typing import Literal
 
 import psycopg
@@ -11,7 +12,7 @@ from pydantic import BaseModel, Field
 from haver import db
 from haver.config import Settings, get_settings
 from haver.core import knowledge, memory, safety
-from haver.core.agent import AgentResult, run_agent
+from haver.core.agent import AgentResult, Step, run_agent
 from haver.core.embedding import Embedder
 from haver.core.llm import LLM
 from haver.core.plugin import Plugin, all_red_flags, all_tools, knowledge_dirs
@@ -64,17 +65,29 @@ def create_app(
 
     @app.post("/api/chat")
     def chat(request: ChatRequest) -> AgentResult:
-        alert = safety.check(request.message, all_red_flags(plugins))
+        flags = all_red_flags(plugins)
+        alert = safety.check(request.message, flags)
         if alert:
             return AgentResult(safety=alert)
-        with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
-            ensure_knowledge(conn)
-            return run_agent(
-                model,
-                all_tools(conn, plugins, embedding),
-                request.message,
-                memory=memory.prompt_block(memory.list_all(conn)),
-            )
+        start = time.perf_counter()
+        screening = safety.triage(model, request.message, flags)
+        if screening.alert:
+            result = AgentResult(safety=screening.alert)
+        else:
+            with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
+                ensure_knowledge(conn)
+                result = run_agent(
+                    model,
+                    all_tools(conn, plugins, embedding),
+                    request.message,
+                    memory=memory.prompt_block(memory.list_all(conn)),
+                )
+        if flags:
+            result.steps.insert(0, _safety_step(screening))
+        result.input_tokens += screening.input_tokens
+        result.output_tokens += screening.output_tokens
+        result.duration_ms = round((time.perf_counter() - start) * 1000)
+        return result
 
     @app.get("/api/memory")
     def list_memory() -> list[memory.Memory]:
@@ -108,6 +121,16 @@ def create_app(
                 raise HTTPException(404, "No such fact.")
 
     return app
+
+
+def _safety_step(screening: safety.Screening) -> Step:
+    if screening.failed:
+        detail = "check failed, question refused"
+    elif screening.alert:
+        detail = f"red flag: {screening.alert.flag_id}"
+    else:
+        detail = "no red flag"
+    return Step(tool="safety_check", arguments={}, ok=not screening.failed, detail=detail)
 
 
 app = create_app()

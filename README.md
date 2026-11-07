@@ -56,6 +56,15 @@ docker compose up -d db
 cd backend && uv run python -m haver.evals
 ```
 
+Safety has two layers. Patterns in code catch the red flags in
+[backend/evals/red_flags.json](backend/evals/red_flags.json) without calling a model. Then one
+short call asks the model only to classify the question, for wording no pattern foresaw. If that
+call fails or answers out of format, the question is refused. To check the model layer alone:
+
+```bash
+cd backend && uv run python -m haver.evals --safety
+```
+
 ## Develop
 
 Backend (Python 3.13, [uv](https://docs.astral.sh/uv/)):

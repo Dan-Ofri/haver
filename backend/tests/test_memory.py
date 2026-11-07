@@ -62,7 +62,9 @@ def test_facts_reach_the_model_as_data(client: TestClient, settings: Settings) -
     llm = Recorder(LLMResponse(tool_calls=[respond]))
     with TestClient(create_app(settings, llm=llm)) as other:
         other.post("/api/chat", json={"message": "plan my legs"})
-    assert "<memory>\n- I have a sore knee\n</memory>" in systems[0]
+    # systems[0] is the safety check, which gets no memory.
+    assert "sore knee" not in systems[0]
+    assert "<memory>\n- I have a sore knee\n</memory>" in systems[1]
 
 
 def test_the_agent_can_remember_when_asked(conn: psycopg.Connection) -> None:
