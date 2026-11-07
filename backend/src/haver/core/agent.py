@@ -100,14 +100,17 @@ class AgentResult(BaseModel):
     duration_ms: int = 0
 
 
-def run_agent(llm: LLM, tools: list[Tool], question: str, max_steps: int = 6) -> AgentResult:
+def run_agent(
+    llm: LLM, tools: list[Tool], question: str, max_steps: int = 6, memory: str = ""
+) -> AgentResult:
+    """`memory` is a ready-made block of facts about the user, added to the system prompt."""
     start = time.perf_counter()
-    result = _loop(llm, tools, question, max_steps)
+    result = _loop(llm, tools, question, max_steps, SYSTEM_PROMPT + memory)
     result.duration_ms = round((time.perf_counter() - start) * 1000)
     return result
 
 
-def _loop(llm: LLM, tools: list[Tool], question: str, max_steps: int) -> AgentResult:
+def _loop(llm: LLM, tools: list[Tool], question: str, max_steps: int, system: str) -> AgentResult:
     by_name = {tool.name: tool for tool in tools}
     specs = [tool.spec() for tool in tools] + [RESPOND_SPEC]
     messages = [Message(role="user", content=question)]
@@ -117,7 +120,7 @@ def _loop(llm: LLM, tools: list[Tool], question: str, max_steps: int) -> AgentRe
     nudged = False
 
     for _ in range(max_steps):
-        response = llm.complete(SYSTEM_PROMPT, messages, specs)
+        response = llm.complete(system, messages, specs)
         tokens[0] += response.input_tokens
         tokens[1] += response.output_tokens
         messages.append(

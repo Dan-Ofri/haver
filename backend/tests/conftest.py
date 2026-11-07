@@ -40,6 +40,6 @@ def conn(test_database: str) -> Iterator[psycopg.Connection]:
     """A real database, emptied before and after each test."""
     # Autocommit, so this connection never holds locks that the app's own connections wait on.
     with psycopg.connect(test_database, autocommit=True) as connection:
-        connection.execute("DROP TABLE IF EXISTS documents")
+        connection.execute("DROP TABLE IF EXISTS documents, memories")
         yield connection
-        connection.execute("DROP TABLE IF EXISTS documents")
+        connection.execute("DROP TABLE IF EXISTS documents, memories")

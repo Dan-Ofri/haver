@@ -5,12 +5,12 @@ import threading
 from typing import Literal
 
 import psycopg
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from haver import db
 from haver.config import Settings, get_settings
-from haver.core import knowledge
+from haver.core import knowledge, memory
 from haver.core.agent import AgentResult, run_agent
 from haver.core.embedding import Embedder
 from haver.core.llm import LLM
@@ -49,6 +49,8 @@ def create_app(
         nonlocal loaded
         with lock:
             if not loaded:
+                with conn.transaction():
+                    memory.ensure_schema(conn)
                 count = knowledge.load(conn, knowledge_dirs(plugins), embedding)
                 logger.info("Loaded %d knowledge documents", count)
                 loaded = True
@@ -64,7 +66,43 @@ def create_app(
     def chat(request: ChatRequest) -> AgentResult:
         with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
             ensure_knowledge(conn)
-            return run_agent(model, all_tools(conn, plugins, embedding), request.message)
+            return run_agent(
+                model,
+                all_tools(conn, plugins, embedding),
+                request.message,
+                memory=memory.prompt_block(memory.list_all(conn)),
+            )
+
+    @app.get("/api/memory")
+    def list_memory() -> list[memory.Memory]:
+        with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
+            ensure_knowledge(conn)
+            return memory.list_all(conn)
+
+    @app.post("/api/memory", status_code=201)
+    def add_memory(body: memory.FactBody) -> memory.Memory:
+        with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
+            ensure_knowledge(conn)
+            try:
+                return memory.add(conn, body.fact)
+            except memory.MemoryFull:
+                raise HTTPException(409, "Memory is full. Delete a fact first.") from None
+
+    @app.put("/api/memory/{memory_id}")
+    def edit_memory(memory_id: int, body: memory.FactBody) -> memory.Memory:
+        with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
+            ensure_knowledge(conn)
+            updated = memory.update(conn, memory_id, body.fact)
+            if updated is None:
+                raise HTTPException(404, "No such fact.")
+            return updated
+
+    @app.delete("/api/memory/{memory_id}", status_code=204)
+    def forget(memory_id: int) -> None:
+        with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
+            ensure_knowledge(conn)
+            if not memory.delete(conn, memory_id):
+                raise HTTPException(404, "No such fact.")
 
     return app
 
