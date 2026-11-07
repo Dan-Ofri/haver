@@ -19,7 +19,8 @@ def test_a_question_goes_through_every_layer(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert [c["id"] for c in body["citations"]] == ["protein-for-muscle-gain"]
-    assert body["steps"][0]["tool"] == "search_knowledge"
+    assert body["steps"][0]["tool"] == "safety_check"
+    assert body["steps"][1]["tool"] == "search_knowledge"
     assert body["claims"][0]["source_ids"] == ["protein-for-muscle-gain"]
     assert body["not_found"] is None
 

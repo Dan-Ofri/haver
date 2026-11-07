@@ -12,22 +12,7 @@ class GeminiLLM:
         self._model = model
 
     def complete(self, system: str, messages: list[Message], tools: list[ToolSpec]) -> LLMResponse:
-        config = types.GenerateContentConfig(
-            system_instruction=system,
-            tools=[
-                types.Tool(
-                    function_declarations=[
-                        types.FunctionDeclaration(
-                            name=t.name,
-                            description=t.description,
-                            parameters_json_schema=t.parameters,
-                        )
-                        for t in tools
-                    ]
-                )
-            ],
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-        )
+        config = _config(system, tools)
         response = self._client.models.generate_content(
             model=self._model, contents=_to_contents(messages), config=config
         )
@@ -49,6 +34,21 @@ class GeminiLLM:
             ),
             provider_data=content,
         )
+
+
+def _config(system: str, tools: list[ToolSpec]) -> types.GenerateContentConfig:
+    declarations = [
+        types.FunctionDeclaration(
+            name=t.name, description=t.description, parameters_json_schema=t.parameters
+        )
+        for t in tools
+    ]
+    return types.GenerateContentConfig(
+        system_instruction=system,
+        # A call with no tools, such as the safety check, sends none: an empty list is rejected.
+        tools=[types.Tool(function_declarations=declarations)] if declarations else None,
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+    )
 
 
 def _to_contents(messages: list[Message]) -> list[types.Content]:

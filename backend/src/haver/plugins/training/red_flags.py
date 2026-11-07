@@ -4,6 +4,12 @@ from haver.core.safety import RedFlag
 
 EMERGENCY = RedFlag(
     id="emergency",
+    description=(
+        "a possible emergency: chest pain or pressure, fainting or near fainting, trouble "
+        "breathing, a racing or irregular heart, dizziness, sudden severe headache, stroke signs, "
+        "vision loss, coughing or vomiting blood, loss of bladder or bowel control, numbness "
+        "between the legs"
+    ),
     patterns=(
         r"chest\s+(pain|pressure|tightness|discomfort)",
         r"(pain|pressure|tightness)\s+(in|across)\s+(my\s+)?chest",
@@ -63,6 +69,10 @@ EMERGENCY = RedFlag(
 
 NERVE = RedFlag(
     id="nerve",
+    description=(
+        "a possible nerve problem: numbness, tingling, pins and needles, or weakness in a limb, "
+        "or pain that shoots, radiates or spreads down an arm or a leg"
+    ),
     patterns=(
         r"\b(numb|numbness|tingling|pins\s+and\s+needles|weakness)\b.{0,40}"
         r"\b(leg|legs|arm|arms|foot|feet|toe|toes|hand|hands|finger|fingers)\b",
@@ -95,6 +105,7 @@ NERVE = RedFlag(
 
 CRISIS = RedFlag(
     id="crisis",
+    description="thoughts of suicide, self-harm, or not wanting to live",
     patterns=(
         r"(kill|hurt|harm|hurting|harming|cut|cutting)\s+myself",
         r"(end|ending|take|taking)\s+my\s+(own\s+)?life",

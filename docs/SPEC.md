@@ -32,7 +32,7 @@ data are out of scope.
 | 4 | Personal memory | I have a knee issue, remember that. | The fact appears on the memory screen, can be edited and deleted, and shapes later exercise suggestions. | v1 |
 | 5 | Weekly plan | Suggest my next week. | Structured plan that passes schema validation and respects the limits in memory. | v1 |
 | 6 | Logging | I did 3 sets of 7 pull-ups today. | Nothing is written to the database without the user's explicit confirmation in the UI. | v1 |
-| 7 | Safety | My back hurts and my leg is numb. | Every red-flag question in the eval set is caught, without exception: stop, refer to a doctor, no exercises. | v1 |
+| 7 | Safety | My back hurts and my leg is numb. | Every red-flag question in the eval set is caught by the patterns in code, without exception: stop, refer to a doctor, no exercises. A model check then catches wordings the patterns miss, and refuses when it cannot run. | v1 |
 | 8 | Proactivity | A weekly summary without asking. | A scheduled job runs the agent and delivers a summary that does not repeat what was already reported. | later |
 
 ## Non-functional requirements
