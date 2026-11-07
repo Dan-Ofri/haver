@@ -112,6 +112,11 @@ def test_a_failing_model_refuses_the_question() -> None:
     screening = triage(Broken(), "How much protein?", RED_FLAGS)
     assert screening.failed and screening.alert is not None
     assert screening.alert.flag_id == "unchecked"
+    # It may be hiding any flag, crisis included, so it points to urgent help too.
+    assert "emergency number" in screening.alert.message
+    assert "crisis line" in screening.alert.message
+    hebrew = triage(Broken(), "יש לי שאלה", RED_FLAGS).alert
+    assert hebrew is not None and "מספר החירום" in hebrew.message and "קו סיוע" in hebrew.message
 
 
 def test_the_question_cannot_close_its_tag() -> None:

@@ -110,9 +110,13 @@ def run_safety(
     return outcomes
 
 
-def main(argv: list[str] = sys.argv[1:]) -> int:
+def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if argv not in ([], ["--safety"]):
+        print("usage: python -m haver.evals [--safety]", file=sys.stderr)
+        return 2
     settings = get_settings()
-    if argv == ["--safety"]:
+    if argv:
         results = run_safety(build_llm(settings), load_safety_cases())
         passes = sum(ok for _, ok in results)
         print(f"\n{passes}/{len(results)} passed ({settings.llm_provider})")

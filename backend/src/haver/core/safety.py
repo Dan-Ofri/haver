@@ -11,8 +11,9 @@ Plugins supply the flags for their domain. Matching errs on the side of caution.
 import logging
 import re
 from dataclasses import dataclass
+from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from haver.core.llm import LLM, Message
 
@@ -41,11 +42,14 @@ UNCHECKED = RedFlag(
     patterns=(),
     message=(
         "I couldn't run my safety check just now, so I won't answer this yet. Please try again in "
-        "a moment. If you feel unwell, don't wait for me: contact a doctor."
+        "a moment. If you feel unwell, don't wait for me: contact a doctor. If it is severe or "
+        "sudden, or you are thinking of hurting yourself, call your local emergency number or a "
+        "crisis line now."
     ),
     message_he=(
         "לא הצלחתי להריץ את בדיקת הבטיחות כרגע, אז אני לא עונה על זה עדיין. נסה שוב בעוד רגע. "
-        "אם אתה לא מרגיש טוב, אל תחכה לי: פנה לרופא."
+        "אם אתה לא מרגיש טוב, אל תחכה לי: פנה לרופא. אם זה חזק או פתאומי, או שאתה חושב לפגוע "
+        "בעצמך, התקשר עכשיו למספר החירום או לקו סיוע."
     ),
 )
 
@@ -100,12 +104,15 @@ def triage(llm: LLM, question: str, flags: list[RedFlag]) -> Screening:
         return Screening(alert=_alert(UNCHECKED, question), failed=True)
 
     tokens = {"input_tokens": response.input_tokens, "output_tokens": response.output_tokens}
+    by_id = {flag.id: flag for flag in flags}
+    # One word, a known flag id or "none". Surrounding case and punctuation are tolerated.
     answer = re.fullmatch(r"\W*(\w+)\W*", response.text)
     word = answer.group(1).lower() if answer else ""
-    by_id = {flag.id: flag for flag in flags}
-    if word in by_id:
-        return Screening(alert=_alert(by_id[word], question), **tokens)
-    if word == "none":
+    try:
+        verdict: str = TypeAdapter(Literal[(*by_id, "none")]).validate_python(word)  # type: ignore[arg-type]
+    except ValidationError:
+        logger.warning("Safety triage answered out of format: %r", response.text[:80])
+        return Screening(alert=_alert(UNCHECKED, question), failed=True, **tokens)
+    if verdict == "none":
         return Screening(**tokens)
-    logger.warning("Safety triage answered out of format: %r", response.text[:80])
-    return Screening(alert=_alert(UNCHECKED, question), failed=True, **tokens)
+    return Screening(alert=_alert(by_id[verdict], question), **tokens)
