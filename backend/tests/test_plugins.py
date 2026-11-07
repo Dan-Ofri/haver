@@ -11,6 +11,7 @@ from haver.core.llm import LLMResponse, ToolCall
 from haver.core.plugin import Plugin, all_tools
 from haver.core.tools import Source, Tool, ToolOutput
 from haver.main import create_app
+from haver.providers.offline_embedder import HashingEmbedder
 from tests.fakes import ScriptedLLM
 
 
@@ -74,4 +75,4 @@ def test_a_plugin_tool_cannot_take_a_reserved_or_used_name(conn: psycopg.Connect
     )
     plugin = Plugin(name="bad", tools=lambda _conn: [respond_tool])
     with pytest.raises(ValueError, match="respond"):
-        all_tools(conn, [plugin])
+        all_tools(conn, [plugin], HashingEmbedder())
