@@ -19,9 +19,10 @@ export default function MemoryPanel() {
       if (ticket === latest.current) {
         setFacts(list)
         setLoaded(true)
+        setError(false)
       }
     } catch {
-      setError(true)
+      if (ticket === latest.current) setError(true)
     }
   }
 

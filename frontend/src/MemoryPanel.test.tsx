@@ -100,14 +100,67 @@ describe('MemoryPanel', () => {
     expect(mock).not.toHaveBeenCalled()
   })
 
-  it('keeps the typed text when saving fails, and shows an error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({}, 500)))
+  it('keeps the typed text when adding fails, and shows an error', async () => {
+    const ok = fakeServer([])
+    const mock = vi.fn((url: string, init?: RequestInit) =>
+      init?.method === 'POST' ? Promise.resolve(json({}, 500)) : ok(url, init),
+    )
+    vi.stubGlobal('fetch', mock)
     render(<MemoryPanel />)
     await open()
-    expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong')
+    await screen.findByText('Nothing yet.')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
     await userEvent.type(screen.getByLabelText('New fact about you'), 'Sore knee')
     await userEvent.click(screen.getByRole('button', { name: 'Remember' }))
-    await screen.findByRole('alert')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong')
     expect(screen.getByLabelText('New fact about you')).toHaveValue('Sore knee')
+  })
+
+  it('sends the new fact in the POST body', async () => {
+    const mock = fakeServer([])
+    vi.stubGlobal('fetch', mock)
+    render(<MemoryPanel />)
+    await open()
+    await userEvent.type(await screen.findByLabelText('New fact about you'), ' Sore knee ')
+    await userEvent.click(screen.getByRole('button', { name: 'Remember' }))
+    await screen.findByText('Sore knee')
+    const post = mock.mock.calls.find(([, init]) => init?.method === 'POST')!
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ fact: 'Sore knee' })
+  })
+
+  it('keeps the editor open when saving an edit fails', async () => {
+    const ok = fakeServer([{ id: 1, fact: 'Vegetarian' }])
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) =>
+        init?.method === 'PUT' ? Promise.resolve(json({}, 500)) : ok(url, init),
+      ),
+    )
+    render(<MemoryPanel />)
+    await open()
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Vegetarian' }))
+    await userEvent.type(screen.getByLabelText('Edit fact'), ' diet')
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(screen.getByLabelText('Edit fact')).toHaveValue('Vegetarian diet')
+  })
+
+  it('shows an error when the first load fails, and clears it after a good reload', async () => {
+    const ok = fakeServer([])
+    let fail = true
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) =>
+        fail ? Promise.resolve(json({}, 500)) : ok(url, init),
+      ),
+    )
+    render(<MemoryPanel />)
+    await open()
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    fail = false
+    await open() // close
+    await open() // reopen
+    await vi.waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
   })
 })
