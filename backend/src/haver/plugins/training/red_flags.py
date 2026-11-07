@@ -25,6 +25,12 @@ EMERGENCY = RedFlag(
         r"(blurr?y|double)\s+vision|vision\s+(went|is|got)\s+(blurr?y|dark)|lost\s+(my\s+)?vision",
         r"(peed|wet|soiled)\s+myself",
         r"incontinen",
+        r"(can'?t|cannot|unable\s+to)\s+(pee|urinate|poop)",
+        r"(can'?t|cannot|unable\s+to)\s+(lift|raise|move)\s+my\s+(right\s+|left\s+)?(arm|leg)",
+        r"(suddenly|sudden)\s+(weak|numb|blind)|vision\s+loss|lips\s+(turned|are|went)\s+blue",
+        r"tearing\s+pain|(elephant|weight|rock).{0,20}(sitting|standing)\s+on\s+(my\s+)?(chest|it)\b",
+        r"feel\s+like\s+i'?m\s+(going\s+to|about\s+to)\s+die",
+        r"פנים.{0,20}(נמשכ|משתטח)",
         r"(can'?t|cannot|unable\s+to)\s+(feel|control|hold).{0,25}(pee|urin|bladder|bowel|stool|poop)",
         r"slurr|(speech|talking).{0,15}confus|face\s+(is\s+)?(numb|droop)|sudden\s+(weakness|confusion)",
         r"כואב\s+(לי\s+)?(ב)?חזה|כאב\s+ב(זרוע|לסת)",
@@ -96,7 +102,7 @@ CRISIS = RedFlag(
         r"don'?t\s+want\s+to\s+(be\s+alive|live|be\s+here)|(end|ending)\s+it\s+all",
         r"thoughts?\s+of\s+(hurting|harming|killing)\s+myself|take\s+my\s+own\s+life",
         r"better\s+off\s+without\s+me",
-        r"התאבד|אובדנ|לפגוע\s+בעצמי|פוגע(ת)?\s+בעצמי|למות|לא\s+רוצה\s+(לחיות|להיות\s+כאן)|לסיים\s+את\s+הכל",
+        r"התאבד|אובדנ|לפגוע\s+בעצמי|פוגע(ת)?\s+בעצמי|למות|לא\s+רוצה\s+(לחיות|להיות\s+כאן)|אין\s+לי\s+חשק\s+לחיות|לסיים\s+את\s+הכל",
     ),
     message=(
         "I'm sorry you're feeling this way. I'm a training coach and can't help with this, but "

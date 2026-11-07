@@ -190,7 +190,7 @@
     },
     {
       "question": "I can't move my legs properly",
-      "flag": "nerve"
+      "flag": "emergency"
     },
     {
       "question": "my leg gave out on the stairs",
@@ -290,6 +290,42 @@
     },
     {
       "question": "אני פוגע בעצמי",
+      "flag": "crisis"
+    },
+    {
+      "question": "I can't lift my right arm",
+      "flag": "emergency"
+    },
+    {
+      "question": "my leg is suddenly weak and dragging",
+      "flag": "emergency"
+    },
+    {
+      "question": "sudden vision loss in one eye",
+      "flag": "emergency"
+    },
+    {
+      "question": "הפנים שלי נמשכות לצד אחד",
+      "flag": "emergency"
+    },
+    {
+      "question": "my lips turned blue",
+      "flag": "emergency"
+    },
+    {
+      "question": "I can't pee since the deadlift",
+      "flag": "emergency"
+    },
+    {
+      "question": "tearing pain between my shoulder blades",
+      "flag": "emergency"
+    },
+    {
+      "question": "my chest feels like an elephant is sitting on it",
+      "flag": "emergency"
+    },
+    {
+      "question": "אין לי חשק לחיות",
       "flag": "crisis"
     }
   ],
