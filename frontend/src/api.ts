@@ -48,3 +48,24 @@ export async function ask(message: string): Promise<ChatAnswer> {
   if (!res.ok) throw new Error(`Request failed: ${res.status}`)
   return (await res.json()) as ChatAnswer
 }
+
+export interface Memory {
+  id: number
+  fact: string
+}
+
+async function call<T>(url: string, method: string, body?: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  return res.status === 204 ? (undefined as T) : ((await res.json()) as T)
+}
+
+export const listMemory = () => call<Memory[]>('/api/memory', 'GET')
+export const addMemory = (fact: string) => call<Memory>('/api/memory', 'POST', { fact })
+export const editMemory = (id: number, fact: string) =>
+  call<Memory>(`/api/memory/${id}`, 'PUT', { fact })
+export const deleteMemory = (id: number) => call<void>(`/api/memory/${id}`, 'DELETE')
