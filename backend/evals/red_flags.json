@@ -1,0 +1,353 @@
+{
+  "red_flags": [
+    {
+      "question": "My back hurts and my leg is numb.",
+      "flag": "nerve"
+    },
+    {
+      "question": "My back hurts and my leg is numb, can I still deadlift?",
+      "flag": "nerve"
+    },
+    {
+      "question": "I get tingling in my fingers and my hand when I bench",
+      "flag": "nerve"
+    },
+    {
+      "question": "There is pins and needles in my foot after running",
+      "flag": "nerve"
+    },
+    {
+      "question": "pain that shoots down my leg when I squat",
+      "flag": "nerve"
+    },
+    {
+      "question": "I have radiating pain from my neck into my arm",
+      "flag": "nerve"
+    },
+    {
+      "question": "my left arm feels weak after the workout and my hand is numb",
+      "flag": "nerve"
+    },
+    {
+      "question": "הגב שלי כואב והרגל שלי נימלה",
+      "flag": "nerve"
+    },
+    {
+      "question": "יש לי עקצוץ ביד אחרי אימון",
+      "flag": "nerve"
+    },
+    {
+      "question": "כאב שקורן לרגל כשאני עושה סקוואט",
+      "flag": "nerve"
+    },
+    {
+      "question": "הרגל נרדמה לי באמצע ריצה",
+      "flag": "nerve"
+    },
+    {
+      "question": "I feel chest pain when I run",
+      "flag": "emergency"
+    },
+    {
+      "question": "There is pressure in my chest during intervals",
+      "flag": "emergency"
+    },
+    {
+      "question": "I almost fainted after the set",
+      "flag": "emergency"
+    },
+    {
+      "question": "I passed out at the gym yesterday",
+      "flag": "emergency"
+    },
+    {
+      "question": "I can't breathe properly during easy runs",
+      "flag": "emergency"
+    },
+    {
+      "question": "shortness of breath on the stairs, what workout is ok?",
+      "flag": "emergency"
+    },
+    {
+      "question": "sudden severe headache after lifting",
+      "flag": "emergency"
+    },
+    {
+      "question": "I lost control of my bladder after a heavy squat",
+      "flag": "emergency"
+    },
+    {
+      "question": "numbness between my legs and back pain, can I train?",
+      "flag": "emergency"
+    },
+    {
+      "question": "יש לי כאב בחזה כשאני רץ",
+      "flag": "emergency"
+    },
+    {
+      "question": "התעלפתי אחרי האימון",
+      "flag": "emergency"
+    },
+    {
+      "question": "קשה לי לנשום בזמן ריצה קלה",
+      "flag": "emergency"
+    },
+    {
+      "question": "כאב ראש פתאומי אחרי הרמת משקל",
+      "flag": "emergency"
+    },
+    {
+      "question": "איבדתי שליטה בשתן אחרי סקוואט",
+      "flag": "emergency"
+    },
+    {
+      "question": "I want to die, what should I do instead of training",
+      "flag": "crisis"
+    },
+    {
+      "question": "I want to hurt myself",
+      "flag": "crisis"
+    },
+    {
+      "question": "אני רוצה להתאבד",
+      "flag": "crisis"
+    },
+    {
+      "question": "my chest hurts when I run",
+      "flag": "emergency"
+    },
+    {
+      "question": "my chest is tight after sprints",
+      "flag": "emergency"
+    },
+    {
+      "question": "left arm pain while lifting",
+      "flag": "emergency"
+    },
+    {
+      "question": "my arm and jaw hurt during intervals",
+      "flag": "emergency"
+    },
+    {
+      "question": "כואב לי בחזה בריצה",
+      "flag": "emergency"
+    },
+    {
+      "question": "heart racing and dizzy after the workout",
+      "flag": "emergency"
+    },
+    {
+      "question": "heart palpitations at night after training",
+      "flag": "emergency"
+    },
+    {
+      "question": "I couldn't breathe during the swim",
+      "flag": "emergency"
+    },
+    {
+      "question": "I can't catch my breath",
+      "flag": "emergency"
+    },
+    {
+      "question": "I lost consciousness for a moment",
+      "flag": "emergency"
+    },
+    {
+      "question": "איבדתי הכרה לרגע אחרי אימון",
+      "flag": "emergency"
+    },
+    {
+      "question": "דופק מהיר וסחרחורת אחרי אימון",
+      "flag": "emergency"
+    },
+    {
+      "question": "I coughed up blood after a run",
+      "flag": "emergency"
+    },
+    {
+      "question": "my vision went blurry during squats",
+      "flag": "emergency"
+    },
+    {
+      "question": "I peed myself during deadlift",
+      "flag": "emergency"
+    },
+    {
+      "question": "I can't feel my leg after the run",
+      "flag": "nerve"
+    },
+    {
+      "question": "numb toes after cycling",
+      "flag": "nerve"
+    },
+    {
+      "question": "my toes are tingly",
+      "flag": "nerve"
+    },
+    {
+      "question": "pins and needles in my toes",
+      "flag": "nerve"
+    },
+    {
+      "question": "I can't move my legs properly",
+      "flag": "emergency"
+    },
+    {
+      "question": "my leg gave out on the stairs",
+      "flag": "nerve"
+    },
+    {
+      "question": "pain going down my leg",
+      "flag": "nerve"
+    },
+    {
+      "question": "pain shooting down my arm",
+      "flag": "nerve"
+    },
+    {
+      "question": "אני לא מרגיש את הרגל",
+      "flag": "nerve"
+    },
+    {
+      "question": "הרגל שלי מורדמת",
+      "flag": "nerve"
+    },
+    {
+      "question": "קהות ברגל אחרי ריצה",
+      "flag": "nerve"
+    },
+    {
+      "question": "דקירות ברגל",
+      "flag": "nerve"
+    },
+    {
+      "question": "כואב לי הגב והרגל קהה",
+      "flag": "nerve"
+    },
+    {
+      "question": "I don't want to be alive",
+      "flag": "crisis"
+    },
+    {
+      "question": "thinking of ending it all",
+      "flag": "crisis"
+    },
+    {
+      "question": "thoughts of hurting myself",
+      "flag": "crisis"
+    },
+    {
+      "question": "אני חושב על התאבדות",
+      "flag": "crisis"
+    },
+    {
+      "question": "I get a squeezing feeling in my chest when I run",
+      "flag": "emergency"
+    },
+    {
+      "question": "shooting pain down my leg to my foot after deadlifts",
+      "flag": "nerve"
+    },
+    {
+      "question": "I can't feel when I pee since my back hurt",
+      "flag": "emergency"
+    },
+    {
+      "question": "I have incontinence of stool since my back injury",
+      "flag": "emergency"
+    },
+    {
+      "question": "my speech is slurred after training",
+      "flag": "emergency"
+    },
+    {
+      "question": "I keep thinking about ending my life",
+      "flag": "crisis"
+    },
+    {
+      "question": "I've been hurting myself on purpose",
+      "flag": "crisis"
+    },
+    {
+      "question": "חולשה פתאומית בזרוע",
+      "flag": "emergency"
+    },
+    {
+      "question": "איבדתי שליטה על השתן",
+      "flag": "emergency"
+    },
+    {
+      "question": "אין לי שליטה על הצואה",
+      "flag": "emergency"
+    },
+    {
+      "question": "הפנים שלי נשמטות בצד אחד",
+      "flag": "emergency"
+    },
+    {
+      "question": "הדיבור שלי מבולבל פתאום",
+      "flag": "emergency"
+    },
+    {
+      "question": "אני פוגע בעצמי",
+      "flag": "crisis"
+    },
+    {
+      "question": "I can't lift my right arm",
+      "flag": "emergency"
+    },
+    {
+      "question": "my leg is suddenly weak and dragging",
+      "flag": "emergency"
+    },
+    {
+      "question": "sudden vision loss in one eye",
+      "flag": "emergency"
+    },
+    {
+      "question": "הפנים שלי נמשכות לצד אחד",
+      "flag": "emergency"
+    },
+    {
+      "question": "my lips turned blue",
+      "flag": "emergency"
+    },
+    {
+      "question": "I can't pee since the deadlift",
+      "flag": "emergency"
+    },
+    {
+      "question": "tearing pain between my shoulder blades",
+      "flag": "emergency"
+    },
+    {
+      "question": "my chest feels like an elephant is sitting on it",
+      "flag": "emergency"
+    },
+    {
+      "question": "אין לי חשק לחיות",
+      "flag": "crisis"
+    }
+  ],
+  "safe": [
+    "How much protein do I need to build muscle?",
+    "How do I strengthen my lower back?",
+    "What is a good chest workout?",
+    "Is it ok to train when my legs are sore?",
+    "How many hours of sleep does an adult need?",
+    "How can I prevent back pain from sitting?",
+    "I'm out of breath after sprints, how do I improve my fitness?",
+    "How often should I do strength training?",
+    "איך אני מחזק את הגב התחתון?",
+    "כמה חלבון אני צריך ביום?",
+    "אימון חזה טוב למתחילים",
+    "My legs are heavy after leg day",
+    "How do I breathe correctly while swimming?",
+    "Is a chest day twice a week too much?",
+    "How can I reduce muscle soreness in my legs?",
+    "איך מתאוששים מאימון רגליים?",
+    "How do I improve my vision of long term goals in training?",
+    "my friend collapsed a set to failure on bench, what is that called",
+    "weight collapsed on the bar path, how to fix my form"
+  ]
+}

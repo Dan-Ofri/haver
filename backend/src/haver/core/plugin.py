@@ -9,6 +9,7 @@ import psycopg
 from haver.core.embedding import Embedder
 from haver.core.knowledge import search_tool
 from haver.core.memory import remember_tool
+from haver.core.safety import RedFlag
 from haver.core.tools import RESPOND, Tool
 
 
@@ -26,10 +27,15 @@ class Plugin:
     name: str
     knowledge_dir: Path | None = None
     tools: Callable[[psycopg.Connection], list[Tool]] = field(default=_no_tools)
+    red_flags: list[RedFlag] = field(default_factory=list)
 
 
 def knowledge_dirs(plugins: list[Plugin]) -> list[Path]:
     return [p.knowledge_dir for p in plugins if p.knowledge_dir is not None]
+
+
+def all_red_flags(plugins: list[Plugin]) -> list[RedFlag]:
+    return [flag for plugin in plugins for flag in plugin.red_flags]
 
 
 def all_tools(conn: psycopg.Connection, plugins: list[Plugin], embedder: Embedder) -> list[Tool]:

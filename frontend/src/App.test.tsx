@@ -7,6 +7,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 
 const answer = {
+  safety: null,
   claims: [{ text: 'About 1.6 g per kg a day.', source_ids: ['protein'] }],
   not_found: null,
   citations: [{ id: 'protein', title: 'Protein for muscle', url: 'https://example.org/p' }],
@@ -41,6 +42,15 @@ describe('App', () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(url).toBe('/api/chat')
     expect(JSON.parse(init.body as string)).toEqual({ message: 'How much protein?' })
+  })
+
+  it('shows a safety alert and no coaching content for a red flag', async () => {
+    const alert = { ...answer, claims: [], citations: [], steps: [], safety: { flag_id: 'nerve', message: 'Please stop and see a doctor.' } }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json(alert)))
+    render(<App />)
+    await askQuestion('My leg is numb')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Please stop and see a doctor.')
   })
 
   it('turns a not-found answer into close topics and questions to ask instead', async () => {

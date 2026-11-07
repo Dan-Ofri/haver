@@ -17,6 +17,7 @@ from pydantic import (
 )
 
 from haver.core.llm import LLM, Message, ToolSpec
+from haver.core.safety import SafetyAlert
 from haver.core.tools import RESPOND, Source, Tool, json_schema
 
 SYSTEM_PROMPT = """You are Haver, a personal coach for training, sleep, nutrition and stress.
@@ -90,6 +91,7 @@ class Step(BaseModel):
 
 
 class AgentResult(BaseModel):
+    safety: SafetyAlert | None = None
     claims: list[Claim] = Field(default_factory=list)
     citations: list[Source] = Field(default_factory=list)
     not_found: NotFound | None = None
