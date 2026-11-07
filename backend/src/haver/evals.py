@@ -13,7 +13,7 @@ import psycopg
 from pydantic import BaseModel, TypeAdapter
 
 from haver.config import get_settings
-from haver.core import knowledge
+from haver.core import knowledge, memory
 from haver.core.agent import AgentResult, run_agent
 from haver.core.embedding import Embedder
 from haver.core.llm import LLM
@@ -52,6 +52,7 @@ def run(
     embedder: Embedder,
     plugins: list[Plugin] = PLUGINS,
 ) -> list[tuple[Case, bool]]:
+    memory.ensure_schema(conn)
     knowledge.load(conn, knowledge_dirs(plugins), embedder)
     tools = all_tools(conn, plugins, embedder)
     outcomes = []
