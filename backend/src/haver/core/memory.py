@@ -4,7 +4,7 @@ The user can list, edit and delete every fact. The agent adds one only when aske
 """
 
 import psycopg
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from haver.core.tools import Tool, ToolOutput
 
@@ -25,8 +25,21 @@ class Memory(BaseModel):
     fact: str
 
 
+def clean(fact: str) -> str:
+    """One plain line: no newlines and no angle brackets, so a fact cannot close the memory block."""
+    return " ".join(fact.replace("<", " ").replace(">", " ").split())
+
+
 class FactBody(BaseModel):
     fact: str = Field(min_length=1, max_length=MAX_LENGTH)
+
+    @field_validator("fact")
+    @classmethod
+    def one_clean_line(cls, value: str) -> str:
+        cleaned = clean(value)
+        if not cleaned:
+            raise ValueError("the fact is empty")
+        return cleaned
 
 
 class MemoryFull(Exception):
@@ -44,7 +57,7 @@ def list_all(conn: psycopg.Connection) -> list[Memory]:
 
 def add(conn: psycopg.Connection, fact: str) -> Memory:
     """Save a fact. Saying the same fact again returns the existing one."""
-    fact = fact.strip()
+    fact = clean(fact)
     existing = conn.execute(
         "SELECT id, fact FROM memories WHERE lower(fact) = lower(%s)", (fact,)
     ).fetchone()
@@ -61,7 +74,7 @@ def add(conn: psycopg.Connection, fact: str) -> Memory:
 
 def update(conn: psycopg.Connection, memory_id: int, fact: str) -> Memory | None:
     row = conn.execute(
-        "UPDATE memories SET fact = %s WHERE id = %s RETURNING id, fact", (fact.strip(), memory_id)
+        "UPDATE memories SET fact = %s WHERE id = %s RETURNING id, fact", (clean(fact), memory_id)
     ).fetchone()
     return Memory(id=row[0], fact=row[1]) if row else None
 
