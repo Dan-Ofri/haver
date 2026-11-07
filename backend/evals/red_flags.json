@@ -239,6 +239,58 @@
     {
       "question": "אני חושב על התאבדות",
       "flag": "crisis"
+    },
+    {
+      "question": "I get a squeezing feeling in my chest when I run",
+      "flag": "emergency"
+    },
+    {
+      "question": "shooting pain down my leg to my foot after deadlifts",
+      "flag": "nerve"
+    },
+    {
+      "question": "I can't feel when I pee since my back hurt",
+      "flag": "emergency"
+    },
+    {
+      "question": "I have incontinence of stool since my back injury",
+      "flag": "emergency"
+    },
+    {
+      "question": "my speech is slurred after training",
+      "flag": "emergency"
+    },
+    {
+      "question": "I keep thinking about ending my life",
+      "flag": "crisis"
+    },
+    {
+      "question": "I've been hurting myself on purpose",
+      "flag": "crisis"
+    },
+    {
+      "question": "חולשה פתאומית בזרוע",
+      "flag": "emergency"
+    },
+    {
+      "question": "איבדתי שליטה על השתן",
+      "flag": "emergency"
+    },
+    {
+      "question": "אין לי שליטה על הצואה",
+      "flag": "emergency"
+    },
+    {
+      "question": "הפנים שלי נשמטות בצד אחד",
+      "flag": "emergency"
+    },
+    {
+      "question": "הדיבור שלי מבולבל פתאום",
+      "flag": "emergency"
+    },
+    {
+      "question": "אני פוגע בעצמי",
+      "flag": "crisis"
     }
   ],
   "safe": [
@@ -258,6 +310,8 @@
     "Is a chest day twice a week too much?",
     "How can I reduce muscle soreness in my legs?",
     "איך מתאוששים מאימון רגליים?",
-    "How do I improve my vision of long term goals in training?"
+    "How do I improve my vision of long term goals in training?",
+    "my friend collapsed a set to failure on bench, what is that called",
+    "weight collapsed on the bar path, how to fix my form"
   ]
 }
