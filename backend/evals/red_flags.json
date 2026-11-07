@@ -111,6 +111,134 @@
     {
       "question": "אני רוצה להתאבד",
       "flag": "crisis"
+    },
+    {
+      "question": "my chest hurts when I run",
+      "flag": "emergency"
+    },
+    {
+      "question": "my chest is tight after sprints",
+      "flag": "emergency"
+    },
+    {
+      "question": "left arm pain while lifting",
+      "flag": "emergency"
+    },
+    {
+      "question": "my arm and jaw hurt during intervals",
+      "flag": "emergency"
+    },
+    {
+      "question": "כואב לי בחזה בריצה",
+      "flag": "emergency"
+    },
+    {
+      "question": "heart racing and dizzy after the workout",
+      "flag": "emergency"
+    },
+    {
+      "question": "heart palpitations at night after training",
+      "flag": "emergency"
+    },
+    {
+      "question": "I couldn't breathe during the swim",
+      "flag": "emergency"
+    },
+    {
+      "question": "I can't catch my breath",
+      "flag": "emergency"
+    },
+    {
+      "question": "I lost consciousness for a moment",
+      "flag": "emergency"
+    },
+    {
+      "question": "איבדתי הכרה לרגע אחרי אימון",
+      "flag": "emergency"
+    },
+    {
+      "question": "דופק מהיר וסחרחורת אחרי אימון",
+      "flag": "emergency"
+    },
+    {
+      "question": "I coughed up blood after a run",
+      "flag": "emergency"
+    },
+    {
+      "question": "my vision went blurry during squats",
+      "flag": "emergency"
+    },
+    {
+      "question": "I peed myself during deadlift",
+      "flag": "emergency"
+    },
+    {
+      "question": "I can't feel my leg after the run",
+      "flag": "nerve"
+    },
+    {
+      "question": "numb toes after cycling",
+      "flag": "nerve"
+    },
+    {
+      "question": "my toes are tingly",
+      "flag": "nerve"
+    },
+    {
+      "question": "pins and needles in my toes",
+      "flag": "nerve"
+    },
+    {
+      "question": "I can't move my legs properly",
+      "flag": "nerve"
+    },
+    {
+      "question": "my leg gave out on the stairs",
+      "flag": "nerve"
+    },
+    {
+      "question": "pain going down my leg",
+      "flag": "nerve"
+    },
+    {
+      "question": "pain shooting down my arm",
+      "flag": "nerve"
+    },
+    {
+      "question": "אני לא מרגיש את הרגל",
+      "flag": "nerve"
+    },
+    {
+      "question": "הרגל שלי מורדמת",
+      "flag": "nerve"
+    },
+    {
+      "question": "קהות ברגל אחרי ריצה",
+      "flag": "nerve"
+    },
+    {
+      "question": "דקירות ברגל",
+      "flag": "nerve"
+    },
+    {
+      "question": "כואב לי הגב והרגל קהה",
+      "flag": "nerve"
+    },
+    {
+      "question": "I don't want to be alive",
+      "flag": "crisis"
+    },
+    {
+      "question": "thinking of ending it all",
+      "flag": "crisis"
+    },
+    {
+      "question": "thoughts of hurting myself",
+      "flag": "crisis"
+    },
+    {
+      "question": "אני חושב על התאבדות",
+      "flag": "crisis"
     }
   ],
   "safe": [
@@ -125,6 +253,11 @@
     "איך אני מחזק את הגב התחתון?",
     "כמה חלבון אני צריך ביום?",
     "אימון חזה טוב למתחילים",
-    "My legs are heavy after leg day"
+    "My legs are heavy after leg day",
+    "How do I breathe correctly while swimming?",
+    "Is a chest day twice a week too much?",
+    "How can I reduce muscle soreness in my legs?",
+    "איך מתאוששים מאימון רגליים?",
+    "How do I improve my vision of long term goals in training?"
   ]
 }

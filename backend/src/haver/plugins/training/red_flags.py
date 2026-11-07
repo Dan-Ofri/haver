@@ -14,6 +14,22 @@ EMERGENCY = RedFlag(
         r"slurred\s+speech|face\s+(is\s+)?droop",
         r"(lost|loss\s+of|lose|losing|can'?t\s+control).{0,20}(bladder|bowel)",
         r"(numb|numbness).{0,30}(groin|genital|saddle|between\s+(my\s+)?legs|inner\s+thigh)",
+        r"\b(chest|heart)\b.{0,25}\b(hurt|hurts|hurting|tight|squeez\w*|crush\w*)",
+        r"\b(hurt|hurts|hurting|tight)\b.{0,15}\bchest\b",
+        r"\b(left\s+arm|jaw)\b.{0,25}\b(pain|hurt|hurts|ache)|(pain|hurt|hurts|ache)\b.{0,25}\b(left\s+arm|jaw)",
+        r"heart\s+(is\s+)?(racing|pounding|fluttering|skipping)|palpitation|irregular\s+heart|racing\s+heart",
+        r"\b(dizzy|dizziness|lightheaded|light-headed)\b",
+        r"(couldn'?t|can'?t|cannot|unable\s+to|struggl\w+\s+to|hard\s+to|trouble|difficulty)\s+(to\s+)?(catch\s+my\s+)?breath",
+        r"\bgasping\b|lost\s+consciousness|collapsed",
+        r"(cough\w*|spit\w*|vomit\w*)\s+(up\s+)?blood|blood\s+in\s+(my\s+)?(urine|stool)",
+        r"(blurr?y|double)\s+vision|vision\s+(went|is|got)\s+(blurr?y|dark)|lost\s+(my\s+)?vision",
+        r"(peed|wet|soiled)\s+myself",
+        r"כואב\s+(לי\s+)?(ב)?חזה|כאב\s+ב(זרוע|לסת)",
+        r"דופק\s+(מהיר|לא\s+סדיר)|פלפיטציות|לב\s+(דופק|מתפרע)",
+        r"סחרחורת|מסוחרר",
+        r"איבדתי\s+(את\s+)?הכרה|איבוד\s+הכרה|נחנקתי|ניסיתי\s+לנשום",
+        r"שיעלתי\s+דם|הקאתי\s+דם|דם\s+בשתן",
+        r"ראי{1,2}ה\s+(מטושטשת|כפולה)",
         r"כאב(ים)?\s+(חזק\s+)?בחזה|לחץ\s+בחזה|צריבה\s+בחזה",
         r"התעלפ|עילפון",
         r"קשה\s+(לי\s+)?לנשום|קוצר\s+נשימה|לא\s+מצליח\s+לנשום",
@@ -38,13 +54,18 @@ NERVE = RedFlag(
     id="nerve",
     patterns=(
         r"\b(numb|numbness|tingling|pins\s+and\s+needles|weakness)\b.{0,40}"
-        r"\b(leg|legs|arm|arms|foot|feet|hand|hands)\b",
-        r"\b(leg|legs|arm|arms|foot|feet|hand|hands)\b.{0,40}"
-        r"\b(numb|numbness|tingling|went\s+weak|is\s+weak|are\s+weak|asleep)\b",
+        r"\b(leg|legs|arm|arms|foot|feet|toe|toes|hand|hands|finger|fingers)\b",
+        r"\b(leg|legs|arm|arms|foot|feet|toe|toes|hand|hands|finger|fingers)\b.{0,40}"
+        r"\b(numb|numbness|tingling|tingly|went\s+weak|is\s+weak|are\s+weak|asleep|gave\s+out)\b",
+        r"\b(numb|tingly)\s+(toes|fingers|feet|hands)",
+        r"can'?t\s+(feel|move)\s+(my\s+)?(\w+\s+)?(leg|legs|arm|arms|foot|feet|toe|toes|hand|hands|fingers?)",
+        r"(pain|ache)\s+(is\s+)?(going|shooting|traveling|travelling|spreading)\s+(down|into|to)\b",
+        r"\bshoots?\s+down|shooting\s+down",
         r"(pain|ache)\s+(that\s+)?(shoots|radiates|spreads|goes|runs)\s+(down|into|to)\b",
         r"radiating\s+pain|pain\s+radiat",
         r"נימול|נימלה|נימלו|חוסר\s+תחושה|ירידה\s+בתחושה|עקצוץ|מקרינ|קורן\s+ל",
         r"(רגל|יד).{0,15}נרדמ",
+        r"מרגיש(ה)?\s+את\s+ה(רגל|יד|אצבעות|בהונות)|(רגל|יד|אצבע).{0,12}(קהה|מורדמת)|קהות|דקירות",
         r"חולשה\s+ב(רגל|יד)",
     ),
     message=(
@@ -65,7 +86,10 @@ CRISIS = RedFlag(
     patterns=(
         r"(kill|hurt|harm)\s+myself",
         r"want\s+to\s+die|end\s+my\s+life|suicid",
-        r"להתאבד|אובדני|לפגוע\s+בעצמי|רוצה\s+למות|לא\s+רוצה\s+לחיות",
+        r"don'?t\s+want\s+to\s+(be\s+alive|live|be\s+here)|(end|ending)\s+it\s+all",
+        r"thoughts?\s+of\s+(hurting|harming|killing)\s+myself|take\s+my\s+own\s+life",
+        r"better\s+off\s+without\s+me",
+        r"התאבד|אובדנ|לפגוע\s+בעצמי|למות|לא\s+רוצה\s+(לחיות|להיות\s+כאן)|לסיים\s+את\s+הכל",
     ),
     message=(
         "I'm sorry you're feeling this way. I'm a training coach and can't help with this, but "
