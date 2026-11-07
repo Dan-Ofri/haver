@@ -10,11 +10,11 @@ from pydantic import BaseModel, Field
 
 from haver import db
 from haver.config import Settings, get_settings
-from haver.core import knowledge, memory
+from haver.core import knowledge, memory, safety
 from haver.core.agent import AgentResult, run_agent
 from haver.core.embedding import Embedder
 from haver.core.llm import LLM
-from haver.core.plugin import Plugin, all_tools, knowledge_dirs
+from haver.core.plugin import Plugin, all_red_flags, all_tools, knowledge_dirs
 from haver.plugins import PLUGINS
 from haver.providers import build_embedder, build_llm
 
@@ -64,6 +64,9 @@ def create_app(
 
     @app.post("/api/chat")
     def chat(request: ChatRequest) -> AgentResult:
+        alert = safety.check(request.message, all_red_flags(plugins))
+        if alert:
+            return AgentResult(safety=alert)
         with psycopg.connect(settings.database_url, connect_timeout=5) as conn:
             ensure_knowledge(conn)
             return run_agent(

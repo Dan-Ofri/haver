@@ -59,6 +59,11 @@ export default function App() {
             {!turn.reply && !turn.error && <p className="status">Thinking…</p>}
             {turn.reply && (
               <div className="reply">
+                {turn.reply.safety && (
+                  <p className="safety" role="alert" dir="auto">
+                    {turn.reply.safety.message}
+                  </p>
+                )}
                 {turn.reply.claims.map((claim, j) => (
                   <p key={j} dir="auto">
                     {withNumbers(claim, turn.reply!.citations)}

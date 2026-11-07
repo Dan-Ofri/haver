@@ -23,7 +23,13 @@ export interface NotFound {
   related: Citation[]
 }
 
+export interface SafetyAlert {
+  flag_id: string
+  message: string
+}
+
 export interface ChatAnswer {
+  safety: SafetyAlert | null
   claims: Claim[]
   citations: Citation[]
   not_found: NotFound | null

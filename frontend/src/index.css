@@ -15,3 +15,10 @@ form { display: flex; gap: 0.5rem; }
 input { flex: 1; padding: 0.5rem; font: inherit; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .suggestions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.safety {
+  border: 2px solid var(--danger, #b3261e);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
