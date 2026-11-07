@@ -26,7 +26,7 @@ class Memory(BaseModel):
 
 
 def clean(fact: str) -> str:
-    """One plain line: no newlines and no angle brackets, so a fact cannot close the memory block."""
+    """One plain line without angle brackets, so a fact cannot close the memory block."""
     return " ".join(fact.replace("<", " ").replace(">", " ").split())
 
 
