@@ -24,6 +24,8 @@ services:
         required: false
     environment:
       DATABASE_URL: postgresql://haver:haver@db:5432/haver
+      # The public demo runs on a made-up trainee. Set to false to start with empty logs.
+      SEED_DEMO_DATA: "true"
     depends_on:
       db:
         condition: service_healthy

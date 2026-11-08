@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     llm_provider: Literal["offline", "gemini"] = "offline"
     gemini_model: str = "gemini-3.8-flash"
     gemini_embedding_model: str = "gemini-embedding-2"
+    # Fills the empty training and sleep logs with a made-up trainee, for demos. Off by default so
+    # real use never mixes in invented data.
+    seed_demo_data: bool = False
 
 
 @lru_cache

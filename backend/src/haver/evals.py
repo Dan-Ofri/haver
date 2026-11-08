@@ -21,7 +21,7 @@ from haver.core import knowledge, memory, safety
 from haver.core.agent import AgentResult, run_agent
 from haver.core.embedding import Embedder
 from haver.core.llm import LLM
-from haver.core.plugin import Plugin, all_red_flags, all_tools, knowledge_dirs
+from haver.core.plugin import Plugin, all_red_flags, all_tools, ensure_schemas, knowledge_dirs
 from haver.plugins import PLUGINS
 from haver.providers import build_embedder, build_llm
 from haver.providers.offline_embedder import HashingEmbedder
@@ -58,6 +58,7 @@ def run(
     plugins: list[Plugin] = PLUGINS,
 ) -> list[tuple[Case, bool]]:
     memory.ensure_schema(conn)
+    ensure_schemas(conn, plugins)
     knowledge.load(conn, knowledge_dirs(plugins), embedder)
     tools = all_tools(conn, plugins, embedder)
     outcomes = []
