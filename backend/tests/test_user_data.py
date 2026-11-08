@@ -208,3 +208,36 @@ def test_week_boundaries(db: psycopg.Connection) -> None:
     # Monday of the current week is outside the window, so it adds no week.
     db.execute("INSERT INTO sleep_logs (day, hours) VALUES (%s, 8)", (monday,))
     assert "Only 1 week(s)" in compare(db, 6)
+
+
+def _week(db: psycopg.Connection, weeks_ago: int, nights: int, kind: str | None) -> None:
+    monday = TODAY - timedelta(days=TODAY.weekday())
+    start = monday - timedelta(weeks=weeks_ago)
+    for d in range(nights):
+        db.execute(
+            "INSERT INTO sleep_logs (day, hours) VALUES (%s, %s)",
+            (start + timedelta(days=d), 6 + weeks_ago % 3),
+        )
+    if kind:
+        db.execute(
+            "INSERT INTO workouts (day, kind, minutes) VALUES (%s, %s, %s)",
+            (start, kind, 30 + 5 * weeks_ago),
+        )
+
+
+def test_four_nights_do_not_make_a_week_but_five_do(db: psycopg.Connection) -> None:
+    for w in range(1, 7):
+        _week(db, w, 5, "strength")
+    assert "Compared 6 weeks" in compare(db, 12)
+    db.execute(
+        "DELETE FROM sleep_logs WHERE day = %s", (TODAY - timedelta(days=TODAY.weekday() + 3),)
+    )  # drops a night from last week: 4 left
+    assert "Only 5 week(s)" in compare(db, 12)
+
+
+def test_a_week_with_only_yoga_counts_as_logged_with_zero_strength(
+    db: psycopg.Connection,
+) -> None:
+    for w in range(1, 7):
+        _week(db, w, 7, "strength" if w > 1 else "yoga")
+    assert "Compared 6 weeks" in compare(db, 12)

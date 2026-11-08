@@ -64,7 +64,8 @@ def compare(conn: psycopg.Connection, weeks: int) -> str:
     if len(usable) < MIN_WEEKS:
         return (
             f"Only {len(usable)} week(s) with at least {MIN_NIGHTS} logged nights and a logged "
-            f"workout in the last {weeks} weeks. At least {MIN_WEEKS} are needed to compare them, so I can't say."
+            f"workout in the last {weeks} weeks. At least {MIN_WEEKS} are needed to compare them, "
+            "so I can't say."
         )
     r = pearson([u[0] for u in usable], [u[1] for u in usable])
     if r is None:
