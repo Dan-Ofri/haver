@@ -28,10 +28,18 @@ class Plugin:
     knowledge_dir: Path | None = None
     tools: Callable[[psycopg.Connection], list[Tool]] = field(default=_no_tools)
     red_flags: list[RedFlag] = field(default_factory=list)
+    # SQL that creates the domain's tables. It must be safe to run on every start.
+    schema: str = ""
 
 
 def knowledge_dirs(plugins: list[Plugin]) -> list[Path]:
     return [p.knowledge_dir for p in plugins if p.knowledge_dir is not None]
+
+
+def ensure_schemas(conn: psycopg.Connection, plugins: list[Plugin]) -> None:
+    for plugin in plugins:
+        if plugin.schema:
+            conn.execute(plugin.schema)
 
 
 def all_red_flags(plugins: list[Plugin]) -> list[RedFlag]:
