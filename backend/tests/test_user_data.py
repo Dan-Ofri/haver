@@ -82,6 +82,7 @@ def test_pearson_and_its_wording() -> None:
     assert describe(0.1) == "weak positive"
     assert describe(-0.45) == "moderate negative"
     assert describe(0.9) == "strong positive"
+    assert describe(0.0) == "no clear"
 
 
 def test_the_link_needs_enough_weeks_and_says_so(db: psycopg.Connection) -> None:
@@ -91,7 +92,7 @@ def test_the_link_needs_enough_weeks_and_says_so(db: psycopg.Connection) -> None
 def test_the_demo_trainee_shows_the_built_in_link(db: psycopg.Connection) -> None:
     assert demo.seed(db) is True
     text = compare(db, 12)
-    assert "Compared 12 complete weeks" in text
+    assert "Compared 12 weeks" in text
     assert "strong positive" in text
     assert "not proof that one causes the other" in text
 
@@ -118,7 +119,7 @@ def test_an_incomplete_week_of_sleep_is_not_read_as_short_sleep(db: psycopg.Conn
         "DELETE FROM sleep_logs WHERE day >= %s AND day < %s + 7 AND day > %s + 3",
         (monday - timedelta(weeks=12),) * 2 + (monday - timedelta(weeks=12),),
     )
-    assert "Compared 11 complete weeks" in compare(db, 12)
+    assert "Compared 11 weeks" in compare(db, 12)
 
 
 @pytest.fixture
@@ -165,3 +166,45 @@ def test_the_tool_input_is_validated(db: psycopg.Connection) -> None:
 
     result = run_agent(llm, [workout_tool(db)], "q")
     assert result.steps[0].ok is False
+
+
+def test_unlogged_workout_weeks_are_not_read_as_skipped_training(db: psycopg.Connection) -> None:
+    demo.seed(db)
+    monday = TODAY - timedelta(days=TODAY.weekday())
+    db.execute("DELETE FROM workouts WHERE day < %s", (monday - timedelta(weeks=4),))
+    assert "Only 4 week(s)" in compare(db, 12)
+
+
+def test_the_link_has_the_right_sign_and_exact_value(db: psycopg.Connection) -> None:
+    monday = TODAY - timedelta(days=TODAY.weekday())
+    # Six complete weeks: more sleep goes with more strength minutes, exactly linear.
+    for i in range(6):
+        week = monday - timedelta(weeks=6 - i)
+        for d in range(7):
+            db.execute(
+                "INSERT INTO sleep_logs (day, hours) VALUES (%s, %s)",
+                (week + timedelta(days=d), 5 + i),
+            )
+        db.execute(
+            "INSERT INTO workouts (day, kind, minutes) VALUES (%s, 'strength', %s)",
+            (week + timedelta(days=2), 30 + 10 * i),
+        )
+    text = compare(db, 12)
+    assert "r = 1.00" in text and "strong positive" in text
+    assert "treat it as a hint" in text  # only 6 weeks
+
+
+def test_week_boundaries(db: psycopg.Connection) -> None:
+    monday = TODAY - timedelta(days=TODAY.weekday())
+    last_week = monday - timedelta(weeks=1)
+    for d in range(7):  # Monday to Sunday of the last complete week
+        db.execute(
+            "INSERT INTO sleep_logs (day, hours) VALUES (%s, 8)",
+            (last_week + timedelta(days=d),),
+        )
+    db.execute(
+        "INSERT INTO workouts (day, kind, minutes) VALUES (%s, 'strength', 50)", (last_week,)
+    )
+    # Monday of the current week is outside the window, so it adds no week.
+    db.execute("INSERT INTO sleep_logs (day, hours) VALUES (%s, 8)", (monday,))
+    assert "Only 1 week(s)" in compare(db, 6)

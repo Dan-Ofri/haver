@@ -10,6 +10,8 @@ from haver.core.plugin import Plugin
 from haver.core.tools import Source, Tool, ToolOutput
 
 MIN_WEEKS = 6
+MIN_NIGHTS = 5
+SMALL_SAMPLE = 10
 SOURCE = Source(id="log-sleep-training", title="Your sleep and workout logs", url="#your-log")
 
 
@@ -31,6 +33,8 @@ def pearson(xs: list[float], ys: list[float]) -> float | None:
 
 def describe(r: float) -> str:
     size = abs(r)
+    if size < 0.1:
+        return "no clear"
     strength = "weak" if size < 0.3 else "moderate" if size < 0.6 else "strong"
     return f"{strength} {'positive' if r > 0 else 'negative'}"
 
@@ -48,17 +52,19 @@ def compare(conn: psycopg.Connection, weeks: int) -> str:
                (SELECT avg(hours) FROM sleep_logs s WHERE s.day >= w.week AND s.day < w.week + 7),
                (SELECT count(*) FROM sleep_logs s WHERE s.day >= w.week AND s.day < w.week + 7),
                (SELECT coalesce(sum(minutes), 0) FROM workouts t
-                WHERE t.kind = 'strength' AND t.day >= w.week AND t.day < w.week + 7)
+                WHERE t.kind = 'strength' AND t.day >= w.week AND t.day < w.week + 7),
+               (SELECT count(*) FROM workouts t WHERE t.day >= w.week AND t.day < w.week + 7)
         FROM w ORDER BY w.week
         """,
         {"n": weeks},
     ).fetchall()
-    # A week counts only with at least 5 logged nights, so a gap is not read as short sleep.
-    usable = [(float(r[1]), float(r[3])) for r in rows if r[2] >= 5]
+    # A week counts only with at least 5 logged nights and at least one logged workout, so a gap
+    # in either log is not read as short sleep or as skipped training.
+    usable = [(float(r[1]), float(r[3])) for r in rows if r[2] >= MIN_NIGHTS and r[4] >= 1]
     if len(usable) < MIN_WEEKS:
         return (
-            f"Only {len(usable)} complete week(s) of sleep and workout data in the last {weeks} "
-            f"weeks. At least {MIN_WEEKS} are needed to compare them, so I can't say."
+            f"Only {len(usable)} week(s) with at least {MIN_NIGHTS} logged nights and a logged "
+            f"workout in the last {weeks} weeks. At least {MIN_WEEKS} are needed to compare them, so I can't say."
         )
     r = pearson([u[0] for u in usable], [u[1] for u in usable])
     if r is None:
@@ -66,10 +72,14 @@ def compare(conn: psycopg.Connection, weeks: int) -> str:
             f"Compared {len(usable)} weeks, but sleep or strength minutes did not vary, "
             "so there is nothing to compare."
         )
+    caution = (
+        f" With only {len(usable)} weeks, treat it as a hint." if len(usable) < SMALL_SAMPLE else ""
+    )
     return (
-        f"Compared {len(usable)} complete weeks of average nightly sleep with strength minutes "
-        f"per week. Correlation r = {r:.2f}, a {describe(r)} link. This is an association in "
-        "the user's own data, not proof that one causes the other."
+        f"Compared {len(usable)} weeks (each with at least {MIN_NIGHTS} logged nights and a "
+        f"logged workout) of average nightly sleep with strength minutes per week. "
+        f"Correlation r = {r:.2f}, a {describe(r)} link. This is an association in the user's "
+        f"own data, not proof that one causes the other.{caution}"
     )
 
 

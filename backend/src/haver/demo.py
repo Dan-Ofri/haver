@@ -14,7 +14,11 @@ WEEKS = 12
 
 def seed(conn: psycopg.Connection, today: date | None = None) -> bool:
     """Fill empty logs. Returns False, and changes nothing, if either log already has rows."""
-    today = today or date.today()
+    # One seeder at a time across processes; the lock is released when the transaction ends.
+    conn.execute("SELECT pg_advisory_xact_lock(7461)")
+    if today is None:
+        row = conn.execute("SELECT current_date").fetchone()  # the same clock the tools use
+        today = row[0] if row else date.today()
     for table in ("workouts", "sleep_logs"):
         if conn.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone():  # noqa: S608
             return False
