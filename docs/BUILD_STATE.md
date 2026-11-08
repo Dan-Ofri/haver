@@ -33,9 +33,7 @@ comes later.
 | 6 | Red-flag safety by patterns in code, English and Hebrew | merged |
 | 7 | Memory screen in the UI | merged |
 | 8 | Second safety layer: a model classifies what the patterns miss, fails closed (ADR 6) | merged |
-| 9 | Phase 4: `workouts` and `sleep_logs`, summary tools, `insights` plugin with the sleep and training link, demo trainee (ADR 7) | open at the time of writing, CI green, reviewed twice, waiting for Dan's approval |
-
-Check the PR list on GitHub for the current status of PR 9.
+| 9 | Phase 4: `workouts` and `sleep_logs`, summary tools, `insights` plugin with the sleep and training link, demo trainee (ADR 7) | merged |
 
 ## Open items
 
